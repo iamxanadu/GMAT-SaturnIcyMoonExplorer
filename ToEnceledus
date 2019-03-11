@@ -1,0 +1,296 @@
+%General Mission Analysis Tool(GMAT) Script
+%Created: 2019-03-07 14:10:40
+
+
+%----------------------------------------
+%---------- User-Defined Celestial Bodies
+%----------------------------------------
+
+
+Create Moon Titan;
+GMAT Titan.NAIFId = 606;
+GMAT Titan.SpiceFrameId = 'IAU_TITAN';
+GMAT Titan.OrbitSpiceKernelName = {'../data/planetary_ephem/spk/sat375.bsp'};
+GMAT Titan.OrbitColor = Tan;
+GMAT Titan.TargetColor = DarkGray;
+GMAT Titan.EquatorialRadius = 2575;
+GMAT Titan.Flattening = 0;
+GMAT Titan.Mu = 8978.521500000001;
+GMAT Titan.PosVelSource = 'SPICE';
+GMAT Titan.CentralBody = 'Saturn';
+GMAT Titan.RotationDataSource = 'IAUSimplified';
+GMAT Titan.OrientationEpoch = 21545;
+GMAT Titan.SpinAxisRAConstant = 36.41;
+GMAT Titan.SpinAxisRARate = -0.036;
+GMAT Titan.SpinAxisDECConstant = 83.94;
+GMAT Titan.SpinAxisDECRate = -0.004;
+GMAT Titan.RotationConstant = 189.64;
+GMAT Titan.RotationRate = 22.5769768;
+GMAT Titan.TextureMapFileName = 'GenericCelestialBody.jpg';
+GMAT Titan.3DModelFile = '';
+GMAT Titan.3DModelOffsetX = 0;
+GMAT Titan.3DModelOffsetY = 0;
+GMAT Titan.3DModelOffsetZ = 0;
+GMAT Titan.3DModelRotationX = 0;
+GMAT Titan.3DModelRotationY = 0;
+GMAT Titan.3DModelRotationZ = 0;
+GMAT Titan.3DModelScale = 10;
+
+Create Moon Enceladus;
+GMAT Enceladus.NAIFId = -123456789;
+GMAT Enceladus.OrbitColor = Tan;
+GMAT Enceladus.TargetColor = DarkGray;
+GMAT Enceladus.EquatorialRadius = 252.1;
+GMAT Enceladus.Flattening = 0.0033527;
+GMAT Enceladus.Mu = 7.21;
+GMAT Enceladus.PosVelSource = 'SPICE';
+GMAT Enceladus.CentralBody = 'Saturn';
+GMAT Enceladus.RotationDataSource = 'IAUSimplified';
+GMAT Enceladus.OrientationEpoch = 21545;
+GMAT Enceladus.SpinAxisRAConstant = 0;
+GMAT Enceladus.SpinAxisRARate = -0.641;
+GMAT Enceladus.SpinAxisDECConstant = 90;
+GMAT Enceladus.SpinAxisDECRate = -0.5570000000000001;
+GMAT Enceladus.RotationConstant = 190.147;
+GMAT Enceladus.RotationRate = 360.9856235;
+GMAT Enceladus.TextureMapFileName = 'GenericCelestialBody.jpg';
+GMAT Enceladus.3DModelFile = '';
+GMAT Enceladus.3DModelOffsetX = 0;
+GMAT Enceladus.3DModelOffsetY = 0;
+GMAT Enceladus.3DModelOffsetZ = 0;
+GMAT Enceladus.3DModelRotationX = 0;
+GMAT Enceladus.3DModelRotationY = 0;
+GMAT Enceladus.3DModelRotationZ = 0;
+GMAT Enceladus.3DModelScale = 10;
+
+%----------------------------------------
+%---------- Spacecraft
+%----------------------------------------
+
+Create Spacecraft DefaultSC;
+GMAT DefaultSC.DateFormat = TAIModJulian;
+GMAT DefaultSC.Epoch = '21545';
+GMAT DefaultSC.CoordinateSystem = EarthMJ2000Eq;
+GMAT DefaultSC.DisplayStateType = Cartesian;
+GMAT DefaultSC.X = 7100;
+GMAT DefaultSC.Y = 0;
+GMAT DefaultSC.Z = 1300;
+GMAT DefaultSC.VX = 0;
+GMAT DefaultSC.VY = 7.35;
+GMAT DefaultSC.VZ = 1;
+GMAT DefaultSC.DryMass = 850;
+GMAT DefaultSC.Cd = 2.2;
+GMAT DefaultSC.Cr = 1.8;
+GMAT DefaultSC.DragArea = 15;
+GMAT DefaultSC.SRPArea = 1;
+GMAT DefaultSC.NAIFId = -10011001;
+GMAT DefaultSC.NAIFIdReferenceFrame = -9011001;
+GMAT DefaultSC.OrbitColor = Red;
+GMAT DefaultSC.TargetColor = Teal;
+GMAT DefaultSC.OrbitErrorCovariance = [ 1e+70 0 0 0 0 0 ; 0 1e+70 0 0 0 0 ; 0 0 1e+70 0 0 0 ; 0 0 0 1e+70 0 0 ; 0 0 0 0 1e+70 0 ; 0 0 0 0 0 1e+70 ];
+GMAT DefaultSC.CdSigma = 1e+70;
+GMAT DefaultSC.CrSigma = 1e+70;
+GMAT DefaultSC.Id = 'SatId';
+GMAT DefaultSC.Attitude = CoordinateSystemFixed;
+GMAT DefaultSC.SPADSRPScaleFactor = 1;
+GMAT DefaultSC.ModelFile = 'aura.3ds';
+GMAT DefaultSC.ModelOffsetX = 0;
+GMAT DefaultSC.ModelOffsetY = 0;
+GMAT DefaultSC.ModelOffsetZ = 0;
+GMAT DefaultSC.ModelRotationX = 0;
+GMAT DefaultSC.ModelRotationY = 0;
+GMAT DefaultSC.ModelRotationZ = 0;
+GMAT DefaultSC.ModelScale = 1;
+GMAT DefaultSC.AttitudeDisplayStateType = 'Quaternion';
+GMAT DefaultSC.AttitudeRateDisplayStateType = 'AngularVelocity';
+GMAT DefaultSC.AttitudeCoordinateSystem = EarthMJ2000Eq;
+GMAT DefaultSC.EulerAngleSequence = '321';
+
+
+
+%----------------------------------------
+%---------- ForceModels
+%----------------------------------------
+
+Create ForceModel DefaultProp_ForceModel;
+GMAT DefaultProp_ForceModel.CentralBody = Earth;
+GMAT DefaultProp_ForceModel.PrimaryBodies = {Earth};
+GMAT DefaultProp_ForceModel.Drag = None;
+GMAT DefaultProp_ForceModel.SRP = Off;
+GMAT DefaultProp_ForceModel.RelativisticCorrection = Off;
+GMAT DefaultProp_ForceModel.ErrorControl = RSSStep;
+GMAT DefaultProp_ForceModel.GravityField.Earth.Degree = 4;
+GMAT DefaultProp_ForceModel.GravityField.Earth.Order = 4;
+GMAT DefaultProp_ForceModel.GravityField.Earth.StmLimit = 100;
+GMAT DefaultProp_ForceModel.GravityField.Earth.PotentialFile = 'JGM2.cof';
+GMAT DefaultProp_ForceModel.GravityField.Earth.TideModel = 'None';
+
+%----------------------------------------
+%---------- Propagators
+%----------------------------------------
+
+Create Propagator DefaultProp;
+GMAT DefaultProp.FM = DefaultProp_ForceModel;
+GMAT DefaultProp.Type = RungeKutta89;
+GMAT DefaultProp.InitialStepSize = 60;
+GMAT DefaultProp.Accuracy = 9.999999999999999e-12;
+GMAT DefaultProp.MinStep = 0.001;
+GMAT DefaultProp.MaxStep = 2700;
+GMAT DefaultProp.MaxStepAttempts = 50;
+GMAT DefaultProp.StopIfAccuracyIsViolated = true;
+
+%----------------------------------------
+%---------- Coordinate Systems
+%----------------------------------------
+
+Create CoordinateSystem SunEcliptic;
+GMAT SunEcliptic.Origin = Sun;
+GMAT SunEcliptic.Axes = MJ2000Ec;
+
+Create CoordinateSystem SaturnInertial;
+GMAT SaturnInertial.Origin = Saturn;
+GMAT SaturnInertial.Axes = BodyInertial;
+
+Create CoordinateSystem TitanInertial;
+GMAT TitanInertial.Origin = Titan;
+GMAT TitanInertial.Axes = BodyInertial;
+
+%----------------------------------------
+%---------- Subscribers
+%----------------------------------------
+
+Create OrbitView EarthView;
+GMAT EarthView.SolverIterations = Current;
+GMAT EarthView.UpperLeft = [ 0.2701778385772914 0.03407755581668625 ];
+GMAT EarthView.Size = [ 0.9972640218878249 0.963572267920094 ];
+GMAT EarthView.RelativeZOrder = 808;
+GMAT EarthView.Maximized = true;
+GMAT EarthView.Add = {DefaultSC, Earth};
+GMAT EarthView.CoordinateSystem = EarthMJ2000Eq;
+GMAT EarthView.DrawObject = [ true true ];
+GMAT EarthView.DataCollectFrequency = 1;
+GMAT EarthView.UpdatePlotFrequency = 50;
+GMAT EarthView.NumPointsToRedraw = 0;
+GMAT EarthView.ShowPlot = true;
+GMAT EarthView.MaxPlotPoints = 20000;
+GMAT EarthView.ShowLabels = true;
+GMAT EarthView.ViewPointReference = Earth;
+GMAT EarthView.ViewPointVector = [ 30000 0 0 ];
+GMAT EarthView.ViewDirection = Earth;
+GMAT EarthView.ViewScaleFactor = 1;
+GMAT EarthView.ViewUpCoordinateSystem = EarthMJ2000Eq;
+GMAT EarthView.ViewUpAxis = Z;
+GMAT EarthView.EclipticPlane = Off;
+GMAT EarthView.XYPlane = On;
+GMAT EarthView.WireFrame = Off;
+GMAT EarthView.Axes = On;
+GMAT EarthView.Grid = Off;
+GMAT EarthView.SunLine = Off;
+GMAT EarthView.UseInitialView = On;
+GMAT EarthView.StarCount = 7000;
+GMAT EarthView.EnableStars = On;
+GMAT EarthView.EnableConstellations = On;
+
+Create OrbitView SolarSystemView;
+GMAT SolarSystemView.SolverIterations = Current;
+GMAT SolarSystemView.UpperLeft = [ 0.2701778385772914 0.03407755581668625 ];
+GMAT SolarSystemView.Size = [ 0.9972640218878249 0.963572267920094 ];
+GMAT SolarSystemView.RelativeZOrder = 800;
+GMAT SolarSystemView.Maximized = true;
+GMAT SolarSystemView.Add = {DefaultSC, Earth, Sun, Saturn, Titan};
+GMAT SolarSystemView.CoordinateSystem = SunEcliptic;
+GMAT SolarSystemView.DrawObject = [ true true true true true ];
+GMAT SolarSystemView.DataCollectFrequency = 1;
+GMAT SolarSystemView.UpdatePlotFrequency = 50;
+GMAT SolarSystemView.NumPointsToRedraw = 0;
+GMAT SolarSystemView.ShowPlot = true;
+GMAT SolarSystemView.MaxPlotPoints = 20000;
+GMAT SolarSystemView.ShowLabels = true;
+GMAT SolarSystemView.ViewPointReference = Sun;
+GMAT SolarSystemView.ViewPointVector = [ 0 0 5000000000 ];
+GMAT SolarSystemView.ViewDirection = Sun;
+GMAT SolarSystemView.ViewScaleFactor = 1;
+GMAT SolarSystemView.ViewUpCoordinateSystem = SunEcliptic;
+GMAT SolarSystemView.ViewUpAxis = Z;
+GMAT SolarSystemView.EclipticPlane = Off;
+GMAT SolarSystemView.XYPlane = On;
+GMAT SolarSystemView.WireFrame = Off;
+GMAT SolarSystemView.Axes = On;
+GMAT SolarSystemView.Grid = Off;
+GMAT SolarSystemView.SunLine = Off;
+GMAT SolarSystemView.UseInitialView = On;
+GMAT SolarSystemView.StarCount = 7000;
+GMAT SolarSystemView.EnableStars = On;
+GMAT SolarSystemView.EnableConstellations = On;
+
+Create OrbitView SaturnView;
+GMAT SaturnView.SolverIterations = Current;
+GMAT SaturnView.UpperLeft = [ 0.2701778385772914 0.03407755581668625 ];
+GMAT SaturnView.Size = [ 0.9972640218878249 0.963572267920094 ];
+GMAT SaturnView.RelativeZOrder = 827;
+GMAT SaturnView.Maximized = true;
+GMAT SaturnView.Add = {DefaultSC, Earth, Saturn, Titan, Enceladus};
+GMAT SaturnView.CoordinateSystem = SaturnInertial;
+GMAT SaturnView.DrawObject = [ true true true true true ];
+GMAT SaturnView.DataCollectFrequency = 1;
+GMAT SaturnView.UpdatePlotFrequency = 50;
+GMAT SaturnView.NumPointsToRedraw = 0;
+GMAT SaturnView.ShowPlot = true;
+GMAT SaturnView.MaxPlotPoints = 20000;
+GMAT SaturnView.ShowLabels = true;
+GMAT SaturnView.ViewPointReference = Saturn;
+GMAT SaturnView.ViewPointVector = [ 0 0 300000 ];
+GMAT SaturnView.ViewDirection = Saturn;
+GMAT SaturnView.ViewScaleFactor = 1;
+GMAT SaturnView.ViewUpCoordinateSystem = SaturnInertial;
+GMAT SaturnView.ViewUpAxis = Z;
+GMAT SaturnView.EclipticPlane = Off;
+GMAT SaturnView.XYPlane = On;
+GMAT SaturnView.WireFrame = Off;
+GMAT SaturnView.Axes = On;
+GMAT SaturnView.Grid = Off;
+GMAT SaturnView.SunLine = Off;
+GMAT SaturnView.UseInitialView = On;
+GMAT SaturnView.StarCount = 7000;
+GMAT SaturnView.EnableStars = On;
+GMAT SaturnView.EnableConstellations = On;
+
+Create OrbitView TitanView;
+GMAT TitanView.SolverIterations = Current;
+GMAT TitanView.UpperLeft = [ 0.2701778385772914 0.03407755581668625 ];
+GMAT TitanView.Size = [ 0.9972640218878249 0.963572267920094 ];
+GMAT TitanView.RelativeZOrder = 825;
+GMAT TitanView.Maximized = true;
+GMAT TitanView.Add = {DefaultSC, Earth, Saturn, Titan, Enceladus};
+GMAT TitanView.CoordinateSystem = TitanInertial;
+GMAT TitanView.DrawObject = [ true true true true true ];
+GMAT TitanView.DataCollectFrequency = 1;
+GMAT TitanView.UpdatePlotFrequency = 50;
+GMAT TitanView.NumPointsToRedraw = 0;
+GMAT TitanView.ShowPlot = true;
+GMAT TitanView.MaxPlotPoints = 20000;
+GMAT TitanView.ShowLabels = true;
+GMAT TitanView.ViewPointReference = Titan;
+GMAT TitanView.ViewPointVector = [ 0 0 30000 ];
+GMAT TitanView.ViewDirection = Titan;
+GMAT TitanView.ViewScaleFactor = 1;
+GMAT TitanView.ViewUpCoordinateSystem = TitanInertial;
+GMAT TitanView.ViewUpAxis = Z;
+GMAT TitanView.EclipticPlane = Off;
+GMAT TitanView.XYPlane = On;
+GMAT TitanView.WireFrame = Off;
+GMAT TitanView.Axes = On;
+GMAT TitanView.Grid = Off;
+GMAT TitanView.SunLine = Off;
+GMAT TitanView.UseInitialView = On;
+GMAT TitanView.StarCount = 7000;
+GMAT TitanView.EnableStars = On;
+GMAT TitanView.EnableConstellations = On;
+
+
+%----------------------------------------
+%---------- Mission Sequence
+%----------------------------------------
+
+BeginMissionSequence;
+Propagate DefaultProp(DefaultSC) {DefaultSC.ElapsedSecs = 12000.0};
