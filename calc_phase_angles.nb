@@ -1,0 +1,378 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     12892,        368]
+NotebookOptionsPosition[     10686,        309]
+NotebookOutlinePosition[     11041,        325]
+CellTagsIndexPosition[     10998,        322]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[
+ RowBox[{"planets", "=", 
+  RowBox[{"PlanetData", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.763222487138667*^9, 
+  3.763222490818241*^9}},ExpressionUUID->"23883adc-2c35-4144-a0fa-\
+315d1763572b"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   TemplateBox[{"\"Mercury\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Mercury\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Mercury\\\"]\"","\"planet\""},
+    "Entity"], ",", 
+   TemplateBox[{"\"Venus\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Venus\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Venus\\\"]\"","\"planet\""},
+    "Entity"], ",", 
+   TemplateBox[{"\"Earth\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Earth\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Earth\\\"]\"","\"planet\""},
+    "Entity"], ",", 
+   TemplateBox[{"\"Mars\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Mars\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Mars\\\"]\"","\"planet\""},
+    "Entity"], ",", 
+   TemplateBox[{"\"Jupiter\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Jupiter\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Jupiter\\\"]\"","\"planet\""},
+    "Entity"], ",", 
+   TemplateBox[{"\"Saturn\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Saturn\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Saturn\\\"]\"","\"planet\""},
+    "Entity"], ",", 
+   TemplateBox[{"\"Uranus\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Uranus\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Uranus\\\"]\"","\"planet\""},
+    "Entity"], ",", 
+   TemplateBox[{"\"Neptune\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Neptune\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Neptune\\\"]\"","\"planet\""},
+    "Entity"]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.7632224911982307`*^9},ExpressionUUID->"6d4a2279-c318-44fa-bdc4-\
+70b13310dcfb"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"PlanetData", "[", 
+     RowBox[{
+      TemplateBox[{"\"Venus\"",RowBox[{"Entity", "[", 
+          RowBox[{"\"Planet\"", ",", "\"Venus\""}], "]"}],
+        "\"Entity[\\\"Planet\\\", \\\"Venus\\\"]\"","\"planet\""},
+       "Entity"], ",", "\"\<HelioCoordinates\>\""}], "]"}], "[", 
+    RowBox[{"[", "1", "]"}], "]"}], ",", 
+   RowBox[{
+    RowBox[{"PlanetData", "[", 
+     RowBox[{
+      TemplateBox[{"\"Venus\"",RowBox[{"Entity", "[", 
+          RowBox[{"\"Planet\"", ",", "\"Venus\""}], "]"}],
+        "\"Entity[\\\"Planet\\\", \\\"Venus\\\"]\"","\"planet\""},
+       "Entity"], ",", "\"\<HelioCoordinates\>\""}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}]}], "}"}]], "Input",
+ CellChangeTimes->{{3.763222304297674*^9, 
+  3.7632223603854723`*^9}},ExpressionUUID->"88736252-3815-4666-a4e2-\
+9954c2b62055"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   TemplateBox[{
+    "0.22002533908587416`","\"au\"","astronomical units",
+     "\"AstronomicalUnit\""},
+    "Quantity"], ",", 
+   TemplateBox[{
+    RowBox[{"-", "0.6933594912165102`"}],"\"au\"","astronomical units",
+     "\"AstronomicalUnit\""},
+    "Quantity"]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.763222361114307*^9},ExpressionUUID->"9684951b-8b9a-4462-bfea-\
+f4864f237c5b"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"angle", "[", "coord_", "]"}], ":=", " ", 
+  RowBox[{"ArcTan", "[", 
+   RowBox[{
+    RowBox[{"coord", "[", 
+     RowBox[{"[", "1", "]"}], "]"}], ",", 
+    RowBox[{"coord", "[", 
+     RowBox[{"[", "2", "]"}], "]"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.763222368314394*^9, 
+  3.76322240862215*^9}},ExpressionUUID->"bfdfa147-bed6-4c9a-a54f-\
+4fc7987ef21d"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Table", "[", 
+  RowBox[{
+   RowBox[{"angle", "[", 
+    RowBox[{"QuantityMagnitude", "[", 
+     RowBox[{"PlanetData", "[", 
+      RowBox[{"planet", " ", ",", "\"\<HelioCoordinates\>\""}], "]"}], "]"}], 
+    "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"planet", ",", "planets"}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.76322241173134*^9, 3.7632224305238867`*^9}, {
+  3.7632224722446957`*^9, 
+  3.763222519728985*^9}},ExpressionUUID->"fb6db519-3530-403e-809f-\
+314b89748247"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "EntityValue","nodat",
+   "\"Unable to download data. Some or all results may be missing.\"",2,716,
+   93,33176082420804347260,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.763222521092554*^9},ExpressionUUID->"c6daf1ed-7d1b-4e3a-ae92-\
+3fcd2f6e72b0"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "EntityValue","nodat",
+   "\"Unable to download data. Some or all results may be missing.\"",2,716,
+   94,33176082420804347260,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.76322252113892*^9},ExpressionUUID->"9b3d65f5-916b-4313-b720-ad3045516d15"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "EntityValue","nodat",
+   "\"Unable to download data. Some or all results may be missing.\"",2,716,
+   95,33176082420804347260,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.763222521156855*^9},ExpressionUUID->"2d667ace-4008-40b0-8410-\
+68bb6c488030"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "General","stop",
+   "\"Further output of \\!\\(\\*StyleBox[RowBox[{\\\"EntityValue\\\", \\\"::\
+\\\", \\\"nodat\\\"}], \\\"MessageName\\\"]\\) will be suppressed during this \
+calculation.\"",2,716,96,33176082420804347260,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.763222521217574*^9},ExpressionUUID->"5f9e0344-1706-4e1c-a8fd-\
+cc5d785e6e2b"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "Part","partw",
+   "\"Part \\!\\(\\*RowBox[{\\\"2\\\"}]\\) of \
+\\!\\(\\*RowBox[{\\\"QuantityMagnitude\\\", \\\"[\\\", \
+RowBox[{\\\"Missing\\\", \\\"[\\\", \\\"\\\\\\\"RetrievalFailure\\\\\\\"\\\", \
+\\\"]\\\"}], \\\"]\\\"}]\\) does not exist.\"",2,716,97,33176082420804347260,
+   "Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.763222521274395*^9},ExpressionUUID->"22430f99-b9e6-42db-9eb6-\
+7964a3640645"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"-", "2.150835050840938`"}], ",", 
+   RowBox[{"ArcTan", "[", 
+    RowBox[{
+     RowBox[{"Missing", "[", "\<\"RetrievalFailure\"\>", "]"}], ",", 
+     RowBox[{
+      RowBox[{"QuantityMagnitude", "[", 
+       RowBox[{"Missing", "[", "\<\"RetrievalFailure\"\>", "]"}], "]"}], 
+      "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}]}], "]"}], ",", 
+   RowBox[{"-", "2.918652035342736`"}], ",", "1.5776374625891423`", ",", 
+   RowBox[{"-", "1.8500862331834473`"}], ",", 
+   RowBox[{"-", "1.3218318925141423`"}], ",", "0.5640636633362585`", ",", 
+   RowBox[{"-", "0.23848476767293939`"}]}], "}"}]], "Output",
+ CellChangeTimes->{{3.763222425779327*^9, 3.763222430923423*^9}, 
+   3.763222475948807*^9, 
+   3.763222522517426*^9},ExpressionUUID->"3dd9380d-9806-4303-bd9a-\
+6b512014006c"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"angle", "[", 
+   RowBox[{"QuantityMagnitude", "[", 
+    RowBox[{"PlanetData", "[", 
+     RowBox[{"planet", " ", ",", "\"\<HelioCoordinates\>\""}], "]"}], "]"}], 
+   "]"}], "/.", 
+  RowBox[{"planet", "\[Rule]", " ", 
+   TemplateBox[{"\"Mercury\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Mercury\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Mercury\\\"]\"","\"planet\""},
+    "Entity"]}]}]], "Input",
+ CellChangeTimes->{{3.763222551237033*^9, 
+  3.763222558082081*^9}},ExpressionUUID->"c63b0447-23d7-43f6-abd3-\
+0f517f569076"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "PlanetData","notent",
+   "\"\\!\\(\\*RowBox[{\\\"planet\\\"}]\\) is not a known entity, class, or \
+tag for \\!\\(\\*RowBox[{\\\"PlanetData\\\"}]\\). Use \
+\\!\\(\\*RowBox[{\\\"PlanetData\\\"}]\\)[] for a list of entities.\"",2,717,
+   98,33176082420804347260,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.763222558733135*^9},ExpressionUUID->"14a2bf2a-d06d-4c73-bd08-\
+e52710c15d71"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "Part","partw",
+   "\"Part \\!\\(\\*RowBox[{\\\"2\\\"}]\\) of \
+\\!\\(\\*RowBox[{\\\"QuantityMagnitude\\\", \\\"[\\\", RowBox[{\\\"PlanetData\
+\\\", \\\"[\\\", RowBox[{\\\"planet\\\", \\\",\\\", \
+\\\"\\\\\\\"HelioCoordinates\\\\\\\"\\\"}], \\\"]\\\"}], \\\"]\\\"}]\\) does \
+not exist.\"",2,717,99,33176082420804347260,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.763222558736599*^9},ExpressionUUID->"2f98cc47-fe17-4b40-93ef-\
+f4b34a9508b2"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"ArcTan", "[", 
+    RowBox[{
+     TemplateBox[{
+      RowBox[{"-", "0.25144547033900827`"}],"\"au\"","astronomical units",
+       "\"AstronomicalUnit\""},
+      "Quantity"], ",", 
+     RowBox[{"-", "0.3838778405781886`"}]}], "]"}], ",", 
+   RowBox[{"ArcTan", "[", 
+    RowBox[{
+     TemplateBox[{
+      RowBox[{"-", "0.3837568108733744`"}],"\"au\"","astronomical units",
+       "\"AstronomicalUnit\""},
+      "Quantity"], ",", 
+     RowBox[{"-", "0.3838778405781886`"}]}], "]"}], ",", 
+   RowBox[{"ArcTan", "[", 
+    RowBox[{
+     TemplateBox[{
+      RowBox[{"-", "0.008047142281734233`"}],"\"au\"","astronomical units",
+       "\"AstronomicalUnit\""},
+      "Quantity"], ",", 
+     RowBox[{"-", "0.3838778405781886`"}]}], "]"}]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.7632225591577806`*^9},ExpressionUUID->"ad7201d9-10f7-4d44-b384-\
+a3662eccff2e"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"angle", "[", 
+  RowBox[{"QuantityMagnitude", "[", 
+   RowBox[{"PlanetData", "[", 
+    RowBox[{
+     TemplateBox[{"\"Saturn\"",RowBox[{"Entity", "[", 
+         RowBox[{"\"Planet\"", ",", "\"Saturn\""}], "]"}],
+       "\"Entity[\\\"Planet\\\", \\\"Saturn\\\"]\"","\"planet\""},
+      "Entity"], ",", "\"\<HelioCoordinates\>\""}], "]"}], "]"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.763222580178678*^9, 
+  3.7632227062780113`*^9}},ExpressionUUID->"5455e153-e00c-42d2-8fdb-\
+377b52d53ecc"],
+
+Cell[BoxData[
+ RowBox[{"-", "1.3218307670589555`"}]], "Output",
+ CellChangeTimes->{{3.7632225829542627`*^9, 
+  3.7632227069497633`*^9}},ExpressionUUID->"487b3074-ee29-47a9-b40c-\
+3bc794fb926f"]
+}, Open  ]]
+},
+WindowSize->{808, 655},
+WindowMargins->{{12, Automatic}, {Automatic, 24}},
+FrontEndVersion->"11.1 for Mac OS X x86 (32-bit, 64-bit Kernel) (April 27, \
+2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 213, 5, 32, "Input", "ExpressionUUID" -> \
+"23883adc-2c35-4144-a0fa-315d1763572b"],
+Cell[796, 29, 1722, 37, 42, "Output", "ExpressionUUID" -> \
+"6d4a2279-c318-44fa-bdc4-70b13310dcfb"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2555, 71, 874, 21, 73, "Input", "ExpressionUUID" -> \
+"88736252-3815-4666-a4e2-9954c2b62055"],
+Cell[3432, 94, 425, 13, 35, "Output", "ExpressionUUID" -> \
+"9684951b-8b9a-4462-bfea-f4864f237c5b"]
+}, Open  ]],
+Cell[3872, 110, 394, 11, 32, "Input", "ExpressionUUID" -> \
+"bfdfa147-bed6-4c9a-a54f-4fc7987ef21d"],
+Cell[CellGroupData[{
+Cell[4291, 125, 503, 13, 54, "Input", "ExpressionUUID" -> \
+"fb6db519-3530-403e-809f-314b89748247"],
+Cell[4797, 140, 310, 8, 24, "Message", "ExpressionUUID" -> \
+"c6daf1ed-7d1b-4e3a-ae92-3fcd2f6e72b0"],
+Cell[5110, 150, 307, 7, 24, "Message", "ExpressionUUID" -> \
+"9b3d65f5-916b-4313-b720-ad3045516d15"],
+Cell[5420, 159, 310, 8, 24, "Message", "ExpressionUUID" -> \
+"2d667ace-4008-40b0-8410-68bb6c488030"],
+Cell[5733, 169, 406, 9, 24, "Message", "ExpressionUUID" -> \
+"5f9e0344-1706-4e1c-a8fd-cc5d785e6e2b"],
+Cell[6142, 180, 465, 11, 24, "Message", "ExpressionUUID" -> \
+"22430f99-b9e6-42db-9eb6-7964a3640645"],
+Cell[6610, 193, 834, 18, 75, "Output", "ExpressionUUID" -> \
+"3dd9380d-9806-4303-bd9a-6b512014006c"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7481, 216, 583, 14, 63, "Input", "ExpressionUUID" -> \
+"c63b0447-23d7-43f6-abd3-0f517f569076"],
+Cell[8067, 232, 444, 10, 24, "Message", "ExpressionUUID" -> \
+"14a2bf2a-d06d-4c73-bd08-e52710c15d71"],
+Cell[8514, 244, 503, 11, 24, "Message", "ExpressionUUID" -> \
+"2f98cc47-fe17-4b40-93ef-f4b34a9508b2"],
+Cell[9020, 257, 904, 26, 58, "Output", "ExpressionUUID" -> \
+"ad7201d9-10f7-4d44-b384-a3662eccff2e"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9961, 288, 513, 12, 42, "Input", "ExpressionUUID" -> \
+"5455e153-e00c-42d2-8fdb-377b52d53ecc"],
+Cell[10477, 302, 193, 4, 66, "Output", "ExpressionUUID" -> \
+"487b3074-ee29-47a9-b40c-3bc794fb926f"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
+
