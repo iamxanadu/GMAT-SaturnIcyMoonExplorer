@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     12892,        368]
-NotebookOptionsPosition[     10686,        309]
-NotebookOutlinePosition[     11041,        325]
-CellTagsIndexPosition[     10998,        322]
+NotebookDataLength[     25527,        697]
+NotebookOptionsPosition[     21658,        596]
+NotebookOutlinePosition[     22013,        612]
+CellTagsIndexPosition[     21970,        609]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -305,6 +305,293 @@ Cell[BoxData[
  CellChangeTimes->{{3.7632225829542627`*^9, 
   3.7632227069497633`*^9}},ExpressionUUID->"487b3074-ee29-47a9-b40c-\
 3bc794fb926f"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"1", "/", 
+  RowBox[{"(", 
+   RowBox[{"Abs", "[", 
+    RowBox[{
+     RowBox[{"Abs", "[", 
+      RowBox[{
+       RowBox[{"1", "/", "0.62"}], " ", "-", " ", 
+       RowBox[{"1", "/", "12"}]}], "]"}], "-", " ", 
+     RowBox[{"1", "/", "24"}]}], "]"}], ")"}]}]], "Input",
+ CellChangeTimes->{{3.763224906830187*^9, 
+  3.7632249373600807`*^9}},ExpressionUUID->"60f12178-89c9-4c7c-aa3b-\
+a98233cfcbf4"],
+
+Cell[BoxData["0.6720867208672087`"], "Output",
+ CellChangeTimes->{{3.763224916776574*^9, 
+  3.763224938040874*^9}},ExpressionUUID->"ee6f44f6-b176-429e-9848-\
+9f9d47cce9a6"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"QuantityMagnitude", "[", 
+  RowBox[{"UnitConvert", "[", 
+   RowBox[{
+    RowBox[{"PlanetData", "[", 
+     RowBox[{
+      TemplateBox[{"\"Jupiter\"",RowBox[{"Entity", "[", 
+          RowBox[{"\"Planet\"", ",", "\"Jupiter\""}], "]"}],
+        "\"Entity[\\\"Planet\\\", \\\"Jupiter\\\"]\"","\"planet\""},
+       "Entity"], ",", "\"\<HelioCoordinates\>\""}], "]"}], ",", 
+    "\"\<kilometers\>\""}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.7632255351042423`*^9, 
+  3.763225580223402*^9}},ExpressionUUID->"2435cdbf-e463-412b-a642-\
+53c7487d3b55"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"-", "2.1941800804639724`*^8"}], ",", 
+   RowBox[{"-", "7.652661275208441`*^8"}], ",", "8.129582204383098`*^6"}], 
+  "}"}]], "Output",
+ CellChangeTimes->{{3.7632255426504593`*^9, 
+  3.7632255808618317`*^9}},ExpressionUUID->"da12deb9-c67b-4a6e-8782-\
+754b28510303"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"PlanetData", "[", 
+  RowBox[{
+   TemplateBox[{"\"Jupiter\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Jupiter\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Jupiter\\\"]\"","\"planet\""},
+    "Entity"], ",", "\"\<HelioCoordinates\>\"", ",", 
+   RowBox[{"\"\<Date\>\"", "\[Rule]", " ", 
+    RowBox[{"DateObject", "[", 
+     RowBox[{"{", 
+      RowBox[{"2020", ",", "4", ",", "9", ",", "22", ",", "0", ",", "0"}], 
+      "}"}], "]"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.763225649452692*^9, 3.7632256791953583`*^9}, {
+  3.7632257560748863`*^9, 
+  3.7632257659196*^9}},ExpressionUUID->"1d07c1f7-c214-40d0-b2bf-788073caa6cc"],
+
+Cell[BoxData[
+ RowBox[{"PlanetData", "[", 
+  RowBox[{
+   TemplateBox[{"\"Jupiter\"",RowBox[{"Entity", "[", 
+       RowBox[{"\"Planet\"", ",", "\"Jupiter\""}], "]"}],
+     "\"Entity[\\\"Planet\\\", \\\"Jupiter\\\"]\"","\"planet\""},
+    "Entity"], ",", "\<\"HelioCoordinates\"\>", ",", 
+   RowBox[{"\<\"Date\"\>", "\[Rule]", 
+    TemplateBox[{RowBox[{"\"Thu 9 Apr 2020 22:00:00\"", 
+        StyleBox[
+         RowBox[{"\"GMT\"", "\[InvisibleSpace]", 
+           RowBox[{"-", "4.`"}]}], FontColor -> GrayLevel[0.5]]}],
+      RowBox[{"DateObject", "[", 
+        RowBox[{
+          RowBox[{"{", 
+            
+            RowBox[{"2020", ",", "4", ",", "9", ",", "22", ",", "0", ",", 
+              "0"}], "}"}], ",", "\"Instant\"", ",", "\"Gregorian\"", ",", 
+          RowBox[{"-", "4.`"}]}], "]"}]},
+     "DateObject",
+     Editable->False]}]}], "]"}]], "Output",
+ CellChangeTimes->{
+  3.763225679541292*^9, {3.7632257597537413`*^9, 
+   3.763225766738303*^9}},ExpressionUUID->"2fd6508c-a85a-4bde-aabc-\
+f04c47c42cf2"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"QuantityMagnitude", "[", 
+  RowBox[{"UnitConvert", "[", 
+   RowBox[{
+    RowBox[{"PlanetData", "[", 
+     RowBox[{"\"\<Jupiter\>\"", ",", " ", "\n", " ", 
+      RowBox[{"EntityProperty", "[", 
+       RowBox[{
+       "\"\<Planet\>\"", ",", " ", "\n", "    ", "\"\<HelioCoordinates\>\"", 
+        ",", " ", 
+        RowBox[{"{", 
+         RowBox[{"\"\<Date\>\"", " ", "->", " ", 
+          RowBox[{"Today", " ", "+", " ", 
+           RowBox[{"Quantity", "[", 
+            RowBox[{"5", ",", "\"\<years\>\""}], "]"}]}]}], "}"}]}], "]"}]}], 
+     "]"}], ",", "\"\<kilometers\>\""}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.763225788347908*^9, 3.763225825229673*^9}, {
+  3.763226811968158*^9, 3.76322681428244*^9}, {3.763226852041778*^9, 
+  3.7632268840929728`*^9}, {3.763227172030582*^9, 
+  3.763227172150096*^9}},ExpressionUUID->"c923f41a-e80b-4d61-8a3e-\
+1c03166d6dcc"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"4.384778601171561`*^8", ",", "6.066923722802995`*^8", ",", 
+   RowBox[{"-", "1.2363939597854096`*^7"}]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.763225789643071*^9, 3.763226815130332*^9, {3.763226860382121*^9, 
+   3.7632268846804447`*^9}, 
+   3.763227172788788*^9},ExpressionUUID->"5d86cfb5-43cf-491d-b4b7-\
+d434f256d2b9"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Today", " ", "+", " ", 
+  RowBox[{"Quantity", "[", 
+   RowBox[{"4", ",", "\"\<years\>\""}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.763226826822276*^9, 
+  3.7632268453918962`*^9}},ExpressionUUID->"25ab745a-3625-4fcc-b4d4-\
+bb798868181c"],
+
+Cell[BoxData[
+ TemplateBox[{RowBox[{
+     StyleBox["\"Day: \"", FontColor -> GrayLevel[0.5], FontWeight -> Plain], 
+     "\"Sun 2 Apr 2023\""}],RowBox[{"DateObject", "[", 
+     RowBox[{
+       RowBox[{"{", 
+         RowBox[{"2023", ",", "4", ",", "2"}], "}"}], ",", "\"Day\"", ",", 
+       "\"Gregorian\"", ",", 
+       RowBox[{"-", "4.`"}]}], "]"}]},
+  "DateObject",
+  Editable->False]], "Output",
+ CellChangeTimes->{{3.7632268286286497`*^9, 
+  3.763226846187207*^9}},ExpressionUUID->"5f7a5440-7103-4f81-a90f-\
+1ea4d74fe746"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"UnitConvert", "[", 
+  RowBox[{
+   NamespaceBox["LinguisticAssistant",
+    DynamicModuleBox[{Typeset`query$$ = "universal gravitational constant", 
+     Typeset`boxes$$ = TemplateBox[{
+       InterpretationBox["\[InvisibleSpace]", 1], 
+       StyleBox["\"G\"", Italic, StripOnInput -> False], 
+       "Newtonian gravitational constants", "\"GravitationalConstant\""}, 
+      "Quantity", SyntaxForm -> Mod], 
+     Typeset`allassumptions$$ = {{
+      "type" -> "Clash", "word" -> "universal gravitational constant", 
+       "template" -> 
+       "Assuming \"${word}\" is ${desc1}. Use as ${desc2} instead", "count" -> 
+       "2", "Values" -> {{
+         "name" -> "Unit", "desc" -> "a unit", "input" -> 
+          "*C.universal+gravitational+constant-_*Unit-"}, {
+         "name" -> "Word", "desc" -> "a word", "input" -> 
+          "*C.universal+gravitational+constant-_*Word-"}}}, {
+      "type" -> "Unit", "word" -> "universal gravitational constant", 
+       "template" -> 
+       "Assuming ${desc1} for \"${word}\". Use ${desc2} instead", "count" -> 
+       "2", "Values" -> {{
+         "name" -> "GravitationalConstant", "desc" -> 
+          "Newtonian gravitational constant", "input" -> 
+          "UnitClash_*universal+gravitational+constant.*GravitationalConstant-\
+-"}, {"name" -> "GravitationalConstantWGS84", "desc" -> 
+          "Newtonian gravitational constant (WGS84)", "input" -> 
+          "UnitClash_*universal+gravitational+constant.*\
+GravitationalConstantWGS84--"}}}}, Typeset`assumptions$$ = {}, 
+     Typeset`open$$ = {1, 2}, Typeset`querystate$$ = {
+     "Online" -> True, "Allowed" -> True, "mparse.jsp" -> 
+      0.423713`6.078616782353356, "Messages" -> {}}}, 
+     DynamicBox[ToBoxes[
+       AlphaIntegration`LinguisticAssistantBoxes["", 4, Automatic, 
+        Dynamic[Typeset`query$$], 
+        Dynamic[Typeset`boxes$$], 
+        Dynamic[Typeset`allassumptions$$], 
+        Dynamic[Typeset`assumptions$$], 
+        Dynamic[Typeset`open$$], 
+        Dynamic[Typeset`querystate$$]], StandardForm],
+      ImageSizeCache->{76., {8., 16.}},
+      TrackedSymbols:>{
+       Typeset`query$$, Typeset`boxes$$, Typeset`allassumptions$$, 
+        Typeset`assumptions$$, Typeset`open$$, Typeset`querystate$$}],
+     DynamicModuleValues:>{},
+     UndoTrackedVariables:>{Typeset`open$$}],
+    BaseStyle->{"Deploy"},
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True], "*", 
+   NamespaceBox["LinguisticAssistant",
+    DynamicModuleBox[{Typeset`query$$ = "mass of sun", Typeset`boxes$$ = 
+     RowBox[{
+       TemplateBox[{"\"Sun\"", 
+         RowBox[{"Entity", "[", 
+           RowBox[{"\"Star\"", ",", "\"Sun\""}], "]"}], 
+         "\"Entity[\\\"Star\\\", \\\"Sun\\\"]\"", "\"star\""}, "Entity"], "[", 
+       TemplateBox[{"\"mass\"", 
+         RowBox[{"EntityProperty", "[", 
+           RowBox[{"\"Star\"", ",", "\"Mass\""}], "]"}], 
+         "\"EntityProperty[\\\"Star\\\", \\\"Mass\\\"]\""}, "EntityProperty"],
+        "]"}], Typeset`allassumptions$$ = {}, Typeset`assumptions$$ = {}, 
+     Typeset`open$$ = {1, 2}, Typeset`querystate$$ = {
+     "Online" -> True, "Allowed" -> True, "mparse.jsp" -> 
+      0.775402`6.341071910347515, "Messages" -> {}}}, 
+     DynamicBox[ToBoxes[
+       AlphaIntegration`LinguisticAssistantBoxes["", 4, Automatic, 
+        Dynamic[Typeset`query$$], 
+        Dynamic[Typeset`boxes$$], 
+        Dynamic[Typeset`allassumptions$$], 
+        Dynamic[Typeset`assumptions$$], 
+        Dynamic[Typeset`open$$], 
+        Dynamic[Typeset`querystate$$]], StandardForm],
+      ImageSizeCache->{179., {11., 18.}},
+      TrackedSymbols:>{
+       Typeset`query$$, Typeset`boxes$$, Typeset`allassumptions$$, 
+        Typeset`assumptions$$, Typeset`open$$, Typeset`querystate$$}],
+     DynamicModuleValues:>{},
+     UndoTrackedVariables:>{Typeset`open$$}],
+    BaseStyle->{"Deploy"},
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True]}], "]"}]], "Input",
+ CellChangeTimes->{{3.763227047923665*^9, 
+  3.763227083810183*^9}},ExpressionUUID->"cf5bbd1c-659b-4d59-9faf-\
+ae7bbf343ae7"],
+
+Cell[BoxData[
+ TemplateBox[{"1.32709742648000006664`4.031532467441943*^20",RowBox[{
+     SuperscriptBox["\"m\"", "3"], "\[NegativeMediumSpace]", "\"/\"", 
+     "\[InvisibleSpace]", 
+     SuperscriptBox["\"s\"", "2"]}],"meters cubed per second squared",
+   FractionBox[
+    SuperscriptBox["\"Meters\"", "3"], 
+    SuperscriptBox["\"Seconds\"", "2"]]},
+  "Quantity"]], "Output",
+ CellChangeTimes->{{3.763227057973119*^9, 
+  3.763227087301969*^9}},ExpressionUUID->"5e04349f-fd08-4653-b505-\
+599b1401e225"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"UnitConvert", "[", 
+  RowBox[{
+   RowBox[{"Quantity", "[", 
+    RowBox[{"1.32709742648000006664`4.031532467441943*^20", ",", 
+     FractionBox[
+      SuperscriptBox["\"\<Meters\>\"", "3"], 
+      SuperscriptBox["\"\<Seconds\>\"", "2"]]}], "]"}], ",", 
+   "\"\<km^3/s^2\>\""}], "]"}]], "Input",
+ NumberMarks->False,ExpressionUUID->"f272775c-6fde-4744-a0e2-2674cc69cafb"],
+
+Cell[BoxData[
+ TemplateBox[{"1.32709742648000006664`4.031532467441943*^11",RowBox[{
+     SuperscriptBox["\"km\"", "3"], "\[NegativeMediumSpace]", "\"/\"", 
+     "\[InvisibleSpace]", 
+     SuperscriptBox["\"s\"", "2"]}],"kilometers cubed per second squared",
+   FractionBox[
+    SuperscriptBox["\"Kilometers\"", "3"], 
+    SuperscriptBox["\"Seconds\"", "2"]]},
+  "Quantity"]], "Output",
+ CellChangeTimes->{
+  3.763227103559648*^9},ExpressionUUID->"63105a5b-8f0b-4f50-8045-\
+cb60c3748fed"]
 }, Open  ]]
 },
 WindowSize->{808, 655},
@@ -367,12 +654,52 @@ Cell[9020, 257, 904, 26, 58, "Output", "ExpressionUUID" -> \
 Cell[CellGroupData[{
 Cell[9961, 288, 513, 12, 42, "Input", "ExpressionUUID" -> \
 "5455e153-e00c-42d2-8fdb-377b52d53ecc"],
-Cell[10477, 302, 193, 4, 66, "Output", "ExpressionUUID" -> \
+Cell[10477, 302, 193, 4, 32, "Output", "ExpressionUUID" -> \
 "487b3074-ee29-47a9-b40c-3bc794fb926f"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[10707, 311, 418, 12, 32, "Input", "ExpressionUUID" -> \
+"60f12178-89c9-4c7c-aa3b-a98233cfcbf4"],
+Cell[11128, 325, 172, 3, 32, "Output", "ExpressionUUID" -> \
+"ee6f44f6-b176-429e-9848-9f9d47cce9a6"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[11337, 333, 571, 13, 42, "Input", "ExpressionUUID" -> \
+"2435cdbf-e463-412b-a642-53c7487d3b55"],
+Cell[11911, 348, 315, 8, 35, "Output", "ExpressionUUID" -> \
+"da12deb9-c67b-4a6e-8782-754b28510303"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[12263, 361, 672, 14, 42, "Input", "ExpressionUUID" -> \
+"1d07c1f7-c214-40d0-b2bf-788073caa6cc"],
+Cell[12938, 377, 1015, 24, 41, "Output", "ExpressionUUID" -> \
+"2fd6508c-a85a-4bde-aabc-f04c47c42cf2"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[13990, 406, 896, 20, 75, "Input", "ExpressionUUID" -> \
+"c923f41a-e80b-4d61-8a3e-1c03166d6dcc"],
+Cell[14889, 428, 365, 8, 69, "Output", "ExpressionUUID" -> \
+"5d86cfb5-43cf-491d-b4b7-d434f256d2b9"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[15291, 441, 262, 6, 32, "Input", "ExpressionUUID" -> \
+"25ab745a-3625-4fcc-b4d4-bb798868181c"],
+Cell[15556, 449, 526, 13, 41, "Output", "ExpressionUUID" -> \
+"5f7a5440-7103-4f81-a90f-1ea4d74fe746"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16119, 467, 4098, 86, 46, "Input", "ExpressionUUID" -> \
+"cf5bbd1c-659b-4d59-9faf-ae7bbf343ae7"],
+Cell[20220, 555, 502, 11, 36, "Output", "ExpressionUUID" -> \
+"5e04349f-fd08-4653-b505-599b1401e225"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[20759, 571, 393, 9, 54, "Input", "ExpressionUUID" -> \
+"f272775c-6fde-4744-a0e2-2674cc69cafb"],
+Cell[21155, 582, 487, 11, 36, "Output", "ExpressionUUID" -> \
+"63105a5b-8f0b-4f50-8045-cb60c3748fed"]
 }, Open  ]]
 }
 ]
 *)
-
-(* End of internal cache information *)
 
