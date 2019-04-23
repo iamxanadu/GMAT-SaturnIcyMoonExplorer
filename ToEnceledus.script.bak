@@ -10,7 +10,7 @@
 Create Moon Titan;
 GMAT Titan.NAIFId = 606;
 GMAT Titan.SpiceFrameId = 'IAU_TITAN';
-GMAT Titan.OrbitSpiceKernelName = {'/opt/GMAT/R2018a/data/planetary_coeff/sat375.bsp'};
+GMAT Titan.OrbitSpiceKernelName = {'C:\Users\catsi\Documents\SPICEKernels\sat375.bsp'};
 GMAT Titan.OrbitColor = Tan;
 GMAT Titan.TargetColor = DarkGray;
 GMAT Titan.EquatorialRadius = 2575;
@@ -38,7 +38,7 @@ GMAT Titan.3DModelScale = 10;
 
 Create Moon Enceladus;
 GMAT Enceladus.NAIFId = 602;
-GMAT Enceladus.OrbitSpiceKernelName = {'/opt/GMAT/R2018a/data/planetary_coeff/sat375.bsp'};
+GMAT Enceladus.OrbitSpiceKernelName = {'C:\Users\catsi\Documents\SPICEKernels\sat375.bsp'};
 GMAT Enceladus.OrbitColor = Tan;
 GMAT Enceladus.TargetColor = DarkGray;
 GMAT Enceladus.EquatorialRadius = 252.1;
@@ -73,13 +73,13 @@ GMAT ELDER.DateFormat = UTCGregorian;
 GMAT ELDER.Epoch = '08 Jan 2037 12:00:00.000';
 GMAT ELDER.CoordinateSystem = EarthBodySpinSun;
 GMAT ELDER.DisplayStateType = OutgoingAsymptote;
-GMAT ELDER.OutgoingRadPer = 6563.000000000015;
-GMAT ELDER.OutgoingC3Energy = 4.000000000004746;
-GMAT ELDER.OutgoingRHA = 359.9999999999975;
-GMAT ELDER.OutgoingDHA = 3.922676041667774e-15;
+GMAT ELDER.OutgoingRadPer = 6540.999999999966;
+GMAT ELDER.OutgoingC3Energy = 12.00000000000087;
+GMAT ELDER.OutgoingRHA = 359.9999999999973;
+GMAT ELDER.OutgoingDHA = 3.254947746644046e-15;
 GMAT ELDER.OutgoingBVAZI = 90;
-GMAT ELDER.TA = 0;
-GMAT ELDER.DryMass = 6000;
+GMAT ELDER.TA = 1.207418269725733e-06;
+GMAT ELDER.DryMass = 2546;
 GMAT ELDER.Cd = 2.2;
 GMAT ELDER.Cr = 1.8;
 GMAT ELDER.DragArea = 15;
@@ -159,8 +159,8 @@ GMAT ELDER.EulerAngleSequence = '321';
 %----------------------------------------
 
 Create ElectricTank ElectricTank1;
-GMAT ElectricTank1.AllowNegativeFuelMass = true;
-GMAT ElectricTank1.FuelMass = 756;
+GMAT ElectricTank1.AllowNegativeFuelMass = false;
+GMAT ElectricTank1.FuelMass = 731;
 
 Create ElectricThruster ElectricThruster1;
 GMAT ElectricThruster1.CoordinateSystem = Local;
@@ -201,6 +201,11 @@ GMAT NuclearPowerSystem1.Margin = 5;
 GMAT NuclearPowerSystem1.BusCoeff1 = 0.3;
 GMAT NuclearPowerSystem1.BusCoeff2 = 0;
 GMAT NuclearPowerSystem1.BusCoeff3 = 0;
+
+
+
+
+
 
 
 
@@ -446,9 +451,9 @@ GMAT DefaultDC.Algorithm = NewtonRaphson;
 
 Create OrbitView EarthView;
 GMAT EarthView.SolverIterations = Current;
-GMAT EarthView.UpperLeft = [ 0.1498452012383901 0.03236607142857143 ];
-GMAT EarthView.Size = [ 0.9975232198142415 0.9654017857142857 ];
-GMAT EarthView.RelativeZOrder = 531;
+GMAT EarthView.UpperLeft = [ 0.2330677290836653 0.03236607142857143 ];
+GMAT EarthView.Size = [ 0.9973439575033201 0.9654017857142857 ];
+GMAT EarthView.RelativeZOrder = 452;
 GMAT EarthView.Maximized = true;
 GMAT EarthView.Add = {ELDER, Earth};
 GMAT EarthView.CoordinateSystem = EarthBodySpinSun;
@@ -456,7 +461,7 @@ GMAT EarthView.DrawObject = [ true true ];
 GMAT EarthView.DataCollectFrequency = 1;
 GMAT EarthView.UpdatePlotFrequency = 50;
 GMAT EarthView.NumPointsToRedraw = 0;
-GMAT EarthView.ShowPlot = true;
+GMAT EarthView.ShowPlot = false;
 GMAT EarthView.MaxPlotPoints = 20000;
 GMAT EarthView.ShowLabels = true;
 GMAT EarthView.ViewPointReference = Earth;
@@ -478,9 +483,9 @@ GMAT EarthView.EnableConstellations = On;
 
 Create OrbitView SolarSystemView;
 GMAT SolarSystemView.SolverIterations = Current;
-GMAT SolarSystemView.UpperLeft = [ 0.1498452012383901 0.03236607142857143 ];
-GMAT SolarSystemView.Size = [ 0.9975232198142415 0.9654017857142857 ];
-GMAT SolarSystemView.RelativeZOrder = 603;
+GMAT SolarSystemView.UpperLeft = [ 0.2330677290836653 0.03236607142857143 ];
+GMAT SolarSystemView.Size = [ 0.9973439575033201 0.9654017857142857 ];
+GMAT SolarSystemView.RelativeZOrder = 592;
 GMAT SolarSystemView.Maximized = true;
 GMAT SolarSystemView.Add = {ELDER, Earth, Sun, Saturn, Titan, Venus, Jupiter, Enceladus, Mars};
 GMAT SolarSystemView.CoordinateSystem = SunEcliptic;
@@ -510,9 +515,9 @@ GMAT SolarSystemView.EnableConstellations = On;
 
 Create OrbitView SaturnView;
 GMAT SaturnView.SolverIterations = Current;
-GMAT SaturnView.UpperLeft = [ 0.1498452012383901 0.03236607142857143 ];
-GMAT SaturnView.Size = [ 0.9975232198142415 0.9654017857142857 ];
-GMAT SaturnView.RelativeZOrder = 523;
+GMAT SaturnView.UpperLeft = [ 0.2330677290836653 0.03236607142857143 ];
+GMAT SaturnView.Size = [ 0.9973439575033201 0.9654017857142857 ];
+GMAT SaturnView.RelativeZOrder = 451;
 GMAT SaturnView.Maximized = true;
 GMAT SaturnView.Add = {ELDER, Earth, Saturn, Titan, Enceladus};
 GMAT SaturnView.CoordinateSystem = SaturnInertial;
@@ -520,7 +525,7 @@ GMAT SaturnView.DrawObject = [ true true true true true ];
 GMAT SaturnView.DataCollectFrequency = 1;
 GMAT SaturnView.UpdatePlotFrequency = 50;
 GMAT SaturnView.NumPointsToRedraw = 0;
-GMAT SaturnView.ShowPlot = true;
+GMAT SaturnView.ShowPlot = false;
 GMAT SaturnView.MaxPlotPoints = 20000;
 GMAT SaturnView.ShowLabels = true;
 GMAT SaturnView.ViewPointReference = Saturn;
@@ -574,9 +579,9 @@ GMAT TitanView.EnableConstellations = On;
 
 Create OrbitView JupiterView;
 GMAT JupiterView.SolverIterations = Current;
-GMAT JupiterView.UpperLeft = [ 0.1498452012383901 0.03236607142857143 ];
-GMAT JupiterView.Size = [ 0.9975232198142415 0.9654017857142857 ];
-GMAT JupiterView.RelativeZOrder = 527;
+GMAT JupiterView.UpperLeft = [ 0.2330677290836653 0.03236607142857143 ];
+GMAT JupiterView.Size = [ 0.9973439575033201 0.9654017857142857 ];
+GMAT JupiterView.RelativeZOrder = 449;
 GMAT JupiterView.Maximized = true;
 GMAT JupiterView.Add = {ELDER, Earth, Jupiter};
 GMAT JupiterView.CoordinateSystem = JupiterInertial;
@@ -584,7 +589,7 @@ GMAT JupiterView.DrawObject = [ true true true ];
 GMAT JupiterView.DataCollectFrequency = 1;
 GMAT JupiterView.UpdatePlotFrequency = 50;
 GMAT JupiterView.NumPointsToRedraw = 0;
-GMAT JupiterView.ShowPlot = true;
+GMAT JupiterView.ShowPlot = false;
 GMAT JupiterView.MaxPlotPoints = 20000;
 GMAT JupiterView.ShowLabels = true;
 GMAT JupiterView.ViewPointReference = Jupiter;
@@ -606,9 +611,9 @@ GMAT JupiterView.EnableConstellations = On;
 
 Create OrbitView VenusView;
 GMAT VenusView.SolverIterations = Current;
-GMAT VenusView.UpperLeft = [ 0.1498452012383901 0.03236607142857143 ];
-GMAT VenusView.Size = [ 0.9975232198142415 0.9654017857142857 ];
-GMAT VenusView.RelativeZOrder = 608;
+GMAT VenusView.UpperLeft = [ 0.2330677290836653 0.03236607142857143 ];
+GMAT VenusView.Size = [ 0.9973439575033201 0.9654017857142857 ];
+GMAT VenusView.RelativeZOrder = 464;
 GMAT VenusView.Maximized = true;
 GMAT VenusView.Add = {ELDER, Earth, Venus};
 GMAT VenusView.CoordinateSystem = VenusInertial;
@@ -616,7 +621,7 @@ GMAT VenusView.DrawObject = [ true true true ];
 GMAT VenusView.DataCollectFrequency = 1;
 GMAT VenusView.UpdatePlotFrequency = 50;
 GMAT VenusView.NumPointsToRedraw = 0;
-GMAT VenusView.ShowPlot = true;
+GMAT VenusView.ShowPlot = false;
 GMAT VenusView.MaxPlotPoints = 20000;
 GMAT VenusView.ShowLabels = true;
 GMAT VenusView.ViewPointReference = Venus;
@@ -640,21 +645,10 @@ GMAT VenusView.EnableConstellations = On;
 %---------- Arrays, Variables, Strings
 %----------------------------------------
 Create Variable SincheBurnDur1 SincheBurnDur2 SincheBurnDur3 SincheBurnDur4;
-GMAT SincheBurnDur1 = 0;
-GMAT SincheBurnDur2 = 0;
-GMAT SincheBurnDur3 = 0;
-GMAT SincheBurnDur4 = 0;
-
-
-
-
-
-
-
-
-
-
-
+GMAT SincheBurnDur1 = 2007205.797934361;
+GMAT SincheBurnDur2 = 2571076.787552507;
+GMAT SincheBurnDur3 = 2959831.12925197;
+GMAT SincheBurnDur4 = 2812165.968495596;
 
 
 
@@ -666,39 +660,42 @@ GMAT SincheBurnDur4 = 0;
 %----------------------------------------
 
 BeginMissionSequence;
-Propagate NearEarth(ELDER) {ELDER.ElapsedDays = 5};
-Target 'OrbitSinche' DefaultDC {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
-   %Vary DefaultDC(ELDER.UTCModJulian = 65066, {Perturbation = 0.0001, Lower = 64500, Upper = 65500, MaxStep = 10, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary DefaultDC(SincheBurnDur1 = 5000000, {Perturbation = 0.0001, Lower = 1e+5, Upper = 1e+7, MaxStep = 5e+6, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary DefaultDC(SincheBurnDur2 = 5000000, {Perturbation = 0.0001, Lower = 1e+5, Upper = 1e+7, MaxStep = 5e+6, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary DefaultDC(SincheBurnDur3 = 5000000, {Perturbation = 0.0001, Lower = 1e+5, Upper = 1e+7, MaxStep = 5e+6, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
-   Vary DefaultDC(SincheBurnDur4 = 5000000, {Perturbation = 0.0001, Lower = 1e+5, Upper = 1e+7, MaxStep = 5e+6, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+Target 'LaunchDateAndDecl' DefaultDC {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
+   Vary 'VaryInitialDecl' DefaultDC(ELDER.OutgoingDHA = 30, {Perturbation = 0.0001, Lower = 0, Upper = 60, MaxStep = 1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Vary 'VaryInitialDate' DefaultDC(ELDER.UTCModJulian = 35067, {Perturbation = 0.0001, Lower = 34500, Upper = 35500, MaxStep = 50, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+   Propagate 'PropNearEarthDays' NearEarth(ELDER) {ELDER.ElapsedDays = 5};
+   %Target 'OrbitSinche' DefaultDC {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
+	Vary 'VaryBurnDur1' DefaultDC(SincheBurnDur1 = 2007205.797934361, {Perturbation = 0.0001, Lower = 1e+5, Upper = 1e+7, MaxStep = 5e+6, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+	Vary 'VaryBurnDur2' DefaultDC(SincheBurnDur2 = 2571076.787552507, {Perturbation = 0.0001, Lower = 1e+5, Upper = 1e+7, MaxStep = 5e+6, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+	Vary 'VaryBurnDur3' DefaultDC(SincheBurnDur3 = 2959831.12925197, {Perturbation = 0.0001, Lower = 1e+5, Upper = 1e+7, MaxStep = 5e+6, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+	Vary 'VaryBurnDur4' DefaultDC(SincheBurnDur4 = 2812165.968495596, {Perturbation = 0.0001, Lower = 1e+5, Upper = 1e+7, MaxStep = 5e+6, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
+	
+	Propagate 'PropDeepSpaceSunAp' DeepSpace(ELDER) {ELDER.Sun.Apoapsis};
+	BeginFiniteBurn 'BeginBurn1' OrbitSinche(ELDER);
+	Propagate 'PropDeepSpaceBurnDur' DeepSpace(ELDER) {ELDER.ElapsedSecs = SincheBurnDur1};
+	EndFiniteBurn 'EndBurn1' OrbitSinche(ELDER);
+	
+	Propagate 'PropDeepSpaceSunAp' DeepSpace(ELDER) {ELDER.Sun.Apoapsis};
+	BeginFiniteBurn 'BeginBurn2' OrbitSinche(ELDER);
+	Propagate 'PropDeepSpaceBurnDur' DeepSpace(ELDER) {ELDER.ElapsedSecs = SincheBurnDur2};
+	EndFiniteBurn 'EndBurn2' OrbitSinche(ELDER);
+	
+	Propagate 'PropDeepSpaceSunAp' DeepSpace(ELDER) {ELDER.Sun.Apoapsis};
+	BeginFiniteBurn 'BeginBurn3' OrbitSinche(ELDER);
+	Propagate 'PropDeepSpaceBurnDur' DeepSpace(ELDER) {ELDER.ElapsedSecs = SincheBurnDur3};
+	EndFiniteBurn 'EndBurn3' OrbitSinche(ELDER);
+	
+	Propagate 'PropDeepSpaceSunAp' DeepSpace(ELDER) {ELDER.Sun.Apoapsis};
+	BeginFiniteBurn 'BeginBurn4' OrbitSinche(ELDER);
+	Propagate 'PropDeepSpaceBurnDur' DeepSpace(ELDER) {ELDER.ElapsedSecs = SincheBurnDur4};
+	EndFiniteBurn 'EndBurn4' OrbitSinche(ELDER);
+	
+	Propagate 'PropDeepSpaceSunPerap' DeepSpace(ELDER) {ELDER.Sun.Periapsis};
+		%Achieve 'AchieveVenusOrbitRad' DefaultDC(ELDER.Sun.RMAG = 108e+6, {Tolerance = 10000});
    
-   Propagate DeepSpace(ELDER) {ELDER.Sun.Apoapsis};
-   BeginFiniteBurn OrbitSinche(ELDER);
-   Propagate DeepSpace(ELDER) {ELDER.ElapsedSecs = SincheBurnDur1};
-   EndFiniteBurn OrbitSinche(ELDER);
-   
-   Propagate DeepSpace(ELDER) {ELDER.Sun.Apoapsis};
-   BeginFiniteBurn OrbitSinche(ELDER);
-   Propagate DeepSpace(ELDER) {ELDER.ElapsedSecs = SincheBurnDur2};
-   EndFiniteBurn OrbitSinche(ELDER);
-   
-   Propagate DeepSpace(ELDER) {ELDER.Sun.Apoapsis};
-   BeginFiniteBurn OrbitSinche(ELDER);
-   Propagate DeepSpace(ELDER) {ELDER.ElapsedSecs = SincheBurnDur3};
-   EndFiniteBurn OrbitSinche(ELDER);
-   
-   Propagate DeepSpace(ELDER) {ELDER.Sun.Apoapsis};
-   BeginFiniteBurn OrbitSinche(ELDER);
-   Propagate DeepSpace(ELDER) {ELDER.ElapsedSecs = SincheBurnDur4};
-   EndFiniteBurn OrbitSinche(ELDER);
-   
-   Propagate DeepSpace(ELDER) {ELDER.Sun.Periapsis};
-   Achieve DefaultDC(ELDER.Sun.RMAG = 108e+6, {Tolerance = 10000});
-   %Achieve DefaultDC(ELDER.UTCModJulian = 66527, {Tolerance = 10});
+   %EndTarget;  % For targeter DefaultDC
+   Achieve 'AchieveVenusRMAG' DefaultDC(ELDER.Venus.RMAG = 1e+6, {Tolerance = 100});
 EndTarget;  % For targeter DefaultDC
-
 
 %Target 'VEJGA' DefaultDC {SolveMode = Solve, ExitMode = DiscardAndContinue, ShowProgressWindow = true};
 %   Vary 'VaryINC' DefaultDC(ELDER.INC = 24.86318940049217, {Perturbation = 0.1, Lower = 20, Upper = 30, MaxStep = 0.1, AdditiveScaleFactor = 0.0, MultiplicativeScaleFactor = 1.0});
@@ -729,6 +726,11 @@ EndTarget;  % For targeter DefaultDC
 %   Achieve DefaultDC(ELDER.VenusInertial.BdotR = 500000, {Tolerance = 100});
 %   Achieve DefaultDC(ELDER.VenusInertial.BdotT = 0, {Tolerance = 100});
 %EndTarget; % For targeter DefaultDC
+
+
+
+
+
 
 
 
