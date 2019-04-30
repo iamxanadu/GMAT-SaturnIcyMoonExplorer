@@ -3,49 +3,101 @@
 
 # In[1]:
 
+import numpy as np
+
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import solar_system_ephemeris
 
 from poliastro.bodies import Sun, Venus, Earth, Jupiter, Saturn
+from poliastro.core.util import cross
 from poliastro.plotting import OrbitPlotter2D
+from poliastro.util import norm
 
 from scipy import optimize as opt
 from node.transfer import TransferPlanner
 from node.flyby import Boundary, Flyby
+import random
+import math
+from poliastro.twobody.orbit import Orbit
  
 solar_system_ephemeris.set("jpl")
 
 KPS = u.km / u.s
 TIME_SCALE="tdb"
-
+dt = Time("2020-01-01", scale=TIME_SCALE) - Time("2021-01-01", scale=TIME_SCALE)
 assert Time("2020-01-01", scale=TIME_SCALE) - Time("2021-01-01", scale=TIME_SCALE) < 0
+
+#test = Orbit.from_body_ephem(Jupiter)
+#test.propagate(-dt)
 
 def causality_constraint(before, after, delta=30):
     def _cmp(args):
         return args[after] - args[before] - delta
     return _cmp
 
-def trajectory_calculator(t=None,plot_on=0,disp_on=False):
+def flyby_constraint(index, minimum, flyby_list):
+    def _cmp(_args):
+        try:
+            return flyby_list[index].r_pr - minimum
+        except IndexError:
+            print("caught")
+            return 1
+    return _cmp
+    
+def take_step(x):
+    print("########## STEP ############")
+    new_x = [y + random.uniform(-100,100) for y in x]
+    while new_x[2] >= new_x[3]:
+        new_x[2] = new_x[2] - 300
+    while new_x[1] >= new_x[2]:
+        new_x[1] = new_x[1] - 300
+    while new_x[0] >= new_x[1]:
+        new_x[0] = new_x[0] - 300
+    return new_x
+                         
+def minima_cb(x, f, accept):
+    ref_epoch = Time("2020-01-01", scale=TIME_SCALE)
+    epochs = [ref_epoch + epoch*u.day for epoch in x]
+    print("minima: ", epochs, " at ", f)
+    
+def make_z_hat(x_vec, y_vec):
+    z_vec = cross(x_vec, y_vec)
+    z_hat = z_vec / np.linalg.norm(z_vec)
+    if z_hat[2] < 0:
+        z_hat = -z_hat
+        
+def angle_between(vec_a, vec_b):
+    return math.acos(vec_a.dot(vec_b)/(norm(vec_a)*norm(vec_b)))
+
+def projector(plane_normal):
+    def proj_onto_plane(vector):
+        vec_onto_normal = vector.dot(plane_normal)
+        return vector - vec_onto_normal
+    return proj_onto_plane
+
+def trajectory_calculator(route, plot_on=False, disp_on=False):
     ref_epoch = Time("2020-01-01", scale=TIME_SCALE)
     
-    if t is None:
-        t = [0, 0, 0, ref_epoch]
-    
-    tmod = [(epoch - ref_epoch).to(u.day).value for epoch in t]
+    tmod = [(epoch - ref_epoch).to(u.day).value for epoch in route.values()]
 
-    time_v = t[0]  
-    time_e = t[1]
-    time_j = t[2]
-    time_s = t[3]
+    time_v = route[Venus]
+    time_e = route[Earth]
+    time_j = route[Jupiter]
+    time_s = route[Saturn]
 
-    route = [Venus, Earth, Jupiter, Saturn]
+    nodes = list(route.keys())
     
     lower_bound = 0
     upper_bound = 40*365
     
-    bounds = [(-7496.0,-90), (-7466.0,-60), (-7436.0,-30), (-7406.0,0)]
-    options = {'maxiter': 100,'disp': True}
+    bounds = [(-7496.0,-90), (-7466.0,-60), (-7436.0,-30), (-7406.0,0)] 
+#     bounds = [(0, tmod[0]+5*365), 
+#               (0, tmod[1]+5*365), 
+#               (tmod[2]-5*365, tmod[2]+5*365), 
+#               (tmod[3]-5*365, tmod[3]+5*365)]
+    
+    options = {'maxiter': 1,'disp': True}
     
     xfer_list = []
     flyby_list = []
@@ -55,61 +107,36 @@ def trajectory_calculator(t=None,plot_on=0,disp_on=False):
         {'type': 'ineq', 'fun':causality_constraint(low_i, high_i)}
         for low_i, high_i in index_pairs]
     
-    def make_transfer(route, ref_epoch, xfer_list, flyby_list):
-        print("route: ", route)
-        planner = TransferPlanner()
-        
-        expected_delta_t = (5*u.year + 30*u.day).to(u.day).value;
-        
-        def err_calc(epoch_list):
-            nonlocal xfer_list, flyby_list
-            xfer_list.clear()
-            flyby_list.clear()
-            
-            start_rev_range = range(len(route)-2, -1, -1) 
-            end_rev_range = range(len(route)-1, 0, -1) 
-            zipped = zip(start_rev_range, end_rev_range)
-            
-            for start, end in zipped:
-                assert start == end-1
-                planner.start_body = route[start]
-                planner.end_body = route[end]
-                
-                start_epoch = ref_epoch + epoch_list[start]*u.day
-                end_epoch = ref_epoch + epoch_list[end]*u.day
-                
-                xfer_list.append(planner.make_transfer(
-                    start_epoch=start_epoch,
-                    end_epoch=end_epoch))
-                
-            xfer_list.reverse()
-            
-            zipped = list(zip(xfer_list[:-1], xfer_list[1:]))
-            for inbound, outbound in zipped:
-                flyby_list.append(Flyby.from_transfers(inbound, outbound))
-                
-            terminus = Boundary.from_transfers(xfer_list[-1], None)
-            
-            t_total = max(epoch_list) - min(epoch_list)
-            t_penalty = max(0, t_total - expected_delta_t)**2
-            
-            summation = sum([flyby.v_err**2 for flyby in flyby_list])
-            
-            print("summation: ", summation)
-            print("delta_v: ", terminus.delta_v**2)
-            print("t penalty: ", t_penalty)
-            
-            return (10*summation + terminus.delta_v**2).value + t_penalty
-        
-        return err_calc
+    constraint_list.append({'type': 'ineq', 
+                            'fun':flyby_constraint(0, 1.1, flyby_list)})
+    constraint_list.append({'type': 'ineq', 
+                            'fun':flyby_constraint(1, 4, flyby_list)})
     
-    obj_func = make_transfer(route, ref_epoch, xfer_list, flyby_list)
+    success = False
+    attempts = 0
+    #while not success and attempts < 10:
+    print("optimizing...")
+    obj_func = make_transfer(nodes, ref_epoch, xfer_list, flyby_list)
+    minimizer_kwargs = {"options": options, 
+                        "bounds": bounds,
+                        "constraints": constraint_list}
+#     opt_sol = opt.basinhopping(obj_func,
+#                                x0=tmod,
+#                                take_step=take_step,
+#                                disp=True,
+#                                callback=minima_cb,
+#                                minimizer_kwargs=minimizer_kwargs)
     opt_sol = opt.minimize(obj_func,
                            x0=tmod,
                            options=options,
                            bounds=bounds,
                            constraints=constraint_list)
     print("opt_sol: ", opt_sol)
+    
+#     success = opt_sol.success and opt_sol.fun < 25
+#     attempts += 1
+    
+    #tmod[3] = random.uniform(max(bounds[3][0], tmod[2] + 1000), tmod[3] + 300)
     
     js_xfer = xfer_list[2]
     ej_xfer = xfer_list[1]
@@ -173,6 +200,57 @@ def trajectory_calculator(t=None,plot_on=0,disp_on=False):
     
     return (sum(delta_vs), orbits, xfer_orbits, delta_vs, times)
 
+def make_transfer(route, ref_epoch, xfer_list, flyby_list):
+    planner = TransferPlanner()
+    
+    expected_delta_t = (7*u.year + 30*u.day).to(u.day).value;
+    
+    def err_calc(epoch_list):
+        nonlocal xfer_list, flyby_list
+        xfer_list.clear()
+        flyby_list.clear()
+        
+        start_rev_range = range(len(route)-2, -1, -1) 
+        end_rev_range = range(len(route)-1, 0, -1) 
+        zipped = zip(start_rev_range, end_rev_range)
+        
+        for start, end in zipped:
+            assert start == end-1
+            planner.start_body = route[start]
+            planner.end_body = route[end]
+            
+            start_epoch = ref_epoch + epoch_list[start]*u.day
+            end_epoch = ref_epoch + epoch_list[end]*u.day
+            
+            if end_epoch < start_epoch:
+                return float('Inf')
+            
+            xfer_list.append(planner.make_transfer(
+                start_epoch=start_epoch,
+                end_epoch=end_epoch))
+            
+        xfer_list.reverse()
+        
+        zipped = list(zip(xfer_list[:-1], xfer_list[1:]))
+        for inbound, outbound in zipped:
+            flyby_list.append(Flyby.from_transfers(inbound, outbound))
+            
+        terminus = Boundary.from_transfers(xfer_list[-1], None)
+        
+        t_total = max(epoch_list) - min(epoch_list)
+        t_penalty = max(0, t_total - expected_delta_t)**2
+        
+        summation = sum([flyby.v_err**2 for flyby in flyby_list])
+        
+        #print("epoch: ", epoch_list)
+        print("summation: ", summation)
+        print("delta_v: ", terminus.delta_v**2)
+        print("t penalty: ", t_penalty)
+        
+        return (100*summation + terminus.delta_v**2).value + t_penalty
+    
+    return err_calc
+
 def print_times(times):
     print("Venus:   ",times[0])
     print("Earth:   ",times[1])
@@ -188,45 +266,31 @@ def calc_max_deltav(v_inf,qratio=10, body=Earth):
 
 if __name__ == "__main__":
     
-    # In[2]:
-    cassini_venus2 = Time("1999-06-24", scale=TIME_SCALE)
-    
     # earth perifocal = 1100 km + R_e
     # r_p / R = 1.17
     # delta v = 5.5 km/s
+    cassini_route = {Venus:   Time("1999-06-24", scale=TIME_SCALE),
+                     Earth:   Time("1999-08-18", scale=TIME_SCALE),
+                     Jupiter: Time("2000-12-30", scale=TIME_SCALE),
+                     Saturn:  Time("2004-07-01", scale=TIME_SCALE)}
+        
+    cassini_venus2 = Time("1999-06-24", scale=TIME_SCALE)
     cassini_earth2 = Time("1999-08-18", scale=TIME_SCALE)
     cassini_jupiter = Time("2000-12-30", scale=TIME_SCALE)
     cassini_saturn = Time("2004-07-01", scale=TIME_SCALE)
     
-    #cassini transit
-    cassini_js_time = cassini_saturn-cassini_jupiter
-    cassini_ej_time = cassini_jupiter-cassini_earth2
-    cassini_ve_time = cassini_earth2-cassini_venus2
-    
     t_guess_cassini = [
-        cassini_saturn,
-        cassini_js_time,
-        cassini_ej_time,
-        cassini_ve_time]
-    
-    t_guess_cassini2 = [
         cassini_venus2,
         cassini_earth2,
         cassini_jupiter,
         cassini_saturn]
     
-    trial_venus2 =  Time("2035-05-23 12:58:08.285", scale=TIME_SCALE)
-    trial_earth2 =  Time("2036-07-01 13:48:36.679", scale=TIME_SCALE)
-    trial_jupiter = Time("2039-02-26 12:23:01.441", scale=TIME_SCALE)
-    trial_saturn =  Time("2046-02-26 06:23:01.441", scale=TIME_SCALE)
+    trial = {Venus:   Time("2027-11-24 12:46:13.205", scale=TIME_SCALE),
+             Earth:   Time("2028-02-14 15:20:30.134", scale=TIME_SCALE),
+             Jupiter: Time("2030-08-03 01:11:35.078", scale=TIME_SCALE),
+             Saturn:  Time("2035-09-05 20:40:09.445", scale=TIME_SCALE)}
     
-    trial = [trial_venus2,
-             trial_earth2,
-             trial_jupiter,
-             trial_saturn]
-    
-    #sol = trajectory_calculator(t_guess_cassini)
-    sol = trajectory_calculator(t_guess_cassini2)
+    sol = trajectory_calculator(cassini_route)
 
     print()
     print("Total deltav: ", sol[0])
