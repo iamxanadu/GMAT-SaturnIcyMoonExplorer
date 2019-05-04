@@ -281,10 +281,7 @@
 
     
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}203}]:} \PY{c+c1}{\PYZsh{} \PYZhy{}*\PYZhy{} coding: utf\PYZhy{}8 \PYZhy{}*\PYZhy{}}
-          \PY{c+c1}{\PYZsh{} Adapted from 2017 Interstellar Technologies Inc. All Rights Reserved.}
-          
-          \PY{k+kn}{from} \PY{n+nn}{\PYZus{}\PYZus{}future\PYZus{}\PYZus{}} \PY{k}{import} \PY{n}{print\PYZus{}function}
+{\color{incolor}In [{\color{incolor}379}]:} \PY{k+kn}{from} \PY{n+nn}{\PYZus{}\PYZus{}future\PYZus{}\PYZus{}} \PY{k}{import} \PY{n}{print\PYZus{}function}
           \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
           \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
           \PY{k+kn}{from} \PY{n+nn}{OpenGoddard}\PY{n+nn}{.}\PY{n+nn}{optimize} \PY{k}{import} \PY{n}{Problem}\PY{p}{,} \PY{n}{Guess}\PY{p}{,} \PY{n}{Condition}\PY{p}{,} \PY{n}{Dynamics}
@@ -292,6 +289,91 @@
           
           \PY{k+kn}{from} \PY{n+nn}{scipy} \PY{k}{import} \PY{n}{integrate}
           \PY{k+kn}{from} \PY{n+nn}{scipy} \PY{k}{import} \PY{n}{interpolate}
+          
+          \PY{k+kn}{import} \PY{n+nn}{astropy}\PY{n+nn}{.}\PY{n+nn}{units} \PY{k}{as} \PY{n+nn}{u}
+          \PY{k+kn}{from} \PY{n+nn}{astropy}\PY{n+nn}{.}\PY{n+nn}{time} \PY{k}{import} \PY{n}{Time}
+          \PY{k+kn}{from} \PY{n+nn}{astropy}\PY{n+nn}{.}\PY{n+nn}{coordinates} \PY{k}{import} \PY{n}{solar\PYZus{}system\PYZus{}ephemeris}
+          
+          \PY{k+kn}{from} \PY{n+nn}{poliastro}\PY{n+nn}{.}\PY{n+nn}{bodies} \PY{k}{import} \PY{n}{Sun}\PY{p}{,}\PY{n}{Venus}\PY{p}{,} \PY{n}{Earth}\PY{p}{,} \PY{n}{Jupiter}\PY{p}{,} \PY{n}{Saturn}
+          \PY{k+kn}{from} \PY{n+nn}{poliastro}\PY{n+nn}{.}\PY{n+nn}{threebody} \PY{k}{import} \PY{n}{flybys}
+          \PY{k+kn}{from} \PY{n+nn}{poliastro}\PY{n+nn}{.}\PY{n+nn}{twobody} \PY{k}{import} \PY{n}{Orbit}
+          \PY{k+kn}{from} \PY{n+nn}{poliastro}\PY{n+nn}{.}\PY{n+nn}{maneuver} \PY{k}{import} \PY{n}{Maneuver}
+          \PY{k+kn}{from} \PY{n+nn}{poliastro}\PY{n+nn}{.}\PY{n+nn}{iod} \PY{k}{import} \PY{n}{izzo}
+          \PY{k+kn}{from} \PY{n+nn}{poliastro}\PY{n+nn}{.}\PY{n+nn}{plotting} \PY{k}{import} \PY{n}{OrbitPlotter2D}\PY{p}{,} \PY{n}{OrbitPlotter3D}
+          \PY{k+kn}{from} \PY{n+nn}{poliastro}\PY{n+nn}{.}\PY{n+nn}{util} \PY{k}{import} \PY{n}{norm}
+          \PY{k+kn}{import} \PY{n+nn}{poliastro}\PY{n+nn}{.}\PY{n+nn}{twobody}\PY{n+nn}{.}\PY{n+nn}{propagation} \PY{k}{as} \PY{n+nn}{Propagation}
+          
+          \PY{k+kn}{from} \PY{n+nn}{scipy} \PY{k}{import} \PY{n}{optimize} \PY{k}{as} \PY{n}{opt}
+           
+          \PY{n}{solar\PYZus{}system\PYZus{}ephemeris}\PY{o}{.}\PY{n}{set}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jpl}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}379}]:} <ScienceState solar\_system\_ephemeris: 'jpl'>
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}380}]:} \PY{n}{r\PYZus{}saturn}\PY{o}{=}\PY{n}{norm}\PY{p}{(}\PY{n}{Orbit}\PY{o}{.}\PY{n}{from\PYZus{}body\PYZus{}ephem}\PY{p}{(}\PY{n}{Saturn}\PY{p}{)}\PY{o}{.}\PY{n}{r}\PY{p}{)}
+          \PY{n}{v\PYZus{}saturn}\PY{o}{=}\PY{n}{norm}\PY{p}{(}\PY{n}{Orbit}\PY{o}{.}\PY{n}{from\PYZus{}body\PYZus{}ephem}\PY{p}{(}\PY{n}{Saturn}\PY{p}{)}\PY{o}{.}\PY{n}{v}\PY{p}{)}
+          \PY{n}{r\PYZus{}earth}\PY{o}{=}\PY{n}{norm}\PY{p}{(}\PY{n}{Orbit}\PY{o}{.}\PY{n}{from\PYZus{}body\PYZus{}ephem}\PY{p}{(}\PY{n}{Earth}\PY{p}{)}\PY{o}{.}\PY{n}{r}\PY{p}{)}
+          \PY{n}{v\PYZus{}earth}\PY{o}{=}\PY{n}{norm}\PY{p}{(}\PY{n}{Orbit}\PY{o}{.}\PY{n}{from\PYZus{}body\PYZus{}ephem}\PY{p}{(}\PY{n}{Earth}\PY{p}{)}\PY{o}{.}\PY{n}{v}\PY{p}{)}
+          
+          \PY{c+c1}{\PYZsh{}determine the optimal earth\PYZhy{}saturn transfer details}
+          \PY{n}{deltav\PYZus{}saturn\PYZus{}insertion\PYZus{}max} \PY{o}{=} \PY{l+m+mi}{500}\PY{o}{*}\PY{n}{u}\PY{o}{.}\PY{n}{m}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{;}
+          \PY{n}{ve\PYZus{}plus\PYZus{}min} \PY{o}{=} \PY{p}{(}\PY{n}{deltav\PYZus{}saturn\PYZus{}insertion\PYZus{}max}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{deltav\PYZus{}saturn\PYZus{}insertion\PYZus{}max}\PY{o}{*}\PY{n}{v\PYZus{}saturn} \PY{o}{+} \PY{n}{Sun}\PY{o}{.}\PY{n}{k}\PY{o}{*}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{/}\PY{n}{r\PYZus{}earth} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{o}{/}\PY{n}{r\PYZus{}saturn}\PY{p}{)}\PY{p}{)}\PY{o}{*}\PY{o}{*}\PY{l+m+mf}{0.5}
+          
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ve\PYZus{}plus\PYZus{}min: }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{ve\PYZus{}plus\PYZus{}min}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{km}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{p}{)}
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{v\PYZus{}earth:     }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{v\PYZus{}earth}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{km}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{p}{)}
+          
+          \PY{n}{vinf} \PY{o}{=} \PY{n}{ve\PYZus{}plus\PYZus{}min}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{km}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{o}{\PYZhy{}}\PY{n}{v\PYZus{}earth}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{km}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{vinf:        }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{vinf}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{km}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{p}{)}
+          
+          \PY{n}{q} \PY{o}{=} \PY{n}{Earth}\PY{o}{.}\PY{n}{R} \PY{o}{+} \PY{l+m+mi}{1500}\PY{o}{*}\PY{n}{u}\PY{o}{.}\PY{n}{km}
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{q:           }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{q}\PY{p}{)}
+          
+          \PY{n}{max\PYZus{}dv\PYZus{}earth\PYZus{}flyby} \PY{o}{=} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{vinf}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{1} \PY{o}{+} \PY{p}{(}\PY{n}{vinf}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2} \PY{o}{*} \PY{n}{q}\PY{p}{)}\PY{o}{/}\PY{n}{Earth}\PY{o}{.}\PY{n}{k}\PY{p}{)}
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{max dv Earth:}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{max\PYZus{}dv\PYZus{}earth\PYZus{}flyby}\PY{p}{)}
+          
+          \PY{n}{max\PYZus{}psi} \PY{o}{=} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{np}\PY{o}{.}\PY{n}{arcsin}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{1}\PY{o}{+}\PY{n}{vinf}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{q}\PY{o}{/}\PY{n}{Earth}\PY{o}{.}\PY{n}{k}\PY{p}{)}\PY{o}{*}\PY{o}{*}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{)}
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{psi\PYZus{}max:     }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{max\PYZus{}psi}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{max\PYZus{}psi}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{deg}\PY{p}{)}\PY{p}{)}
+          
+          \PY{k}{def} \PY{n+nf}{beta\PYZus{}eqn}\PY{p}{(}\PY{n}{beta}\PY{p}{)}\PY{p}{:}
+              \PY{n}{beta} \PY{o}{=} \PY{n}{beta}
+              \PY{k}{return} \PY{p}{(}\PY{n}{v\PYZus{}earth}\PY{o}{/}\PY{p}{(}\PY{n}{vinf}\PY{o}{*}\PY{n}{sin}\PY{p}{(}\PY{n}{beta}\PY{p}{)}\PY{p}{)}\PY{p}{)} \PY{o}{+} \PY{l+m+mi}{1}\PY{o}{/}\PY{n}{tan}\PY{p}{(}\PY{n}{beta}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{o}{/}\PY{n}{tan}\PY{p}{(}\PY{n}{max\PYZus{}psi}\PY{o}{.}\PY{n}{value}\PY{p}{)}
+          
+          \PY{k}{try}\PY{p}{:}
+              \PY{n}{beta\PYZus{}max} \PY{o}{=} \PY{n}{opt}\PY{o}{.}\PY{n}{broyden1}\PY{p}{(}\PY{n}{beta\PYZus{}eqn}\PY{p}{,} \PY{n}{pi}\PY{o}{/}\PY{l+m+mi}{2}\PY{p}{,} \PY{n}{f\PYZus{}tol}\PY{o}{=}\PY{l+m+mf}{1e\PYZhy{}14}\PY{p}{)}
+          \PY{k}{except}\PY{p}{:}
+              \PY{n}{beta\PYZus{}max} \PY{o}{=} \PY{n}{pi}\PY{o}{/}\PY{l+m+mi}{2}\PY{p}{;}
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{beta\PYZus{}max:    }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{beta\PYZus{}max}\PY{p}{)}
+          
+          \PY{n}{ve\PYZus{}minus\PYZus{}radial\PYZus{}max} \PY{o}{=} \PY{n}{vinf}\PY{o}{*}\PY{n}{sin}\PY{p}{(}\PY{n}{beta\PYZus{}max}\PY{p}{)}
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ve\PYZus{}minus\PYZus{}radial\PYZus{}max: }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{ve\PYZus{}minus\PYZus{}radial\PYZus{}max}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{km}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{p}{)}
+          
+          \PY{n}{ve\PYZus{}minus\PYZus{}tangential\PYZus{}min} \PY{o}{=} \PY{n}{v\PYZus{}earth} \PY{o}{\PYZhy{}} \PY{n}{vinf}
+          \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ve\PYZus{}minus\PYZus{}tang\PYZus{}min:   }\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{ve\PYZus{}minus\PYZus{}tangential\PYZus{}min}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{km}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+ve\_plus\_min:  40.86659278477023 km / s
+v\_earth:      29.560918546690782 km / s
+vinf:         11.305674238079451 km / s
+q:            7878136.6 m
+max dv Earth: 6.412268332718217 km / s
+psi\_max:      0.5750637395330822 rad = 32.94872522625608 deg
+beta\_max:     1.5707963267948966
+ve\_minus\_radial\_max:  11.305674238079451 km / s
+ve\_minus\_tang\_min:    18.25524430861133 km / s
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}381}]:} \PY{c+c1}{\PYZsh{} \PYZhy{}*\PYZhy{} coding: utf\PYZhy{}8 \PYZhy{}*\PYZhy{}}
+          \PY{c+c1}{\PYZsh{} Adapted from 2017 Interstellar Technologies Inc. All Rights Reserved.}
+          
+          
           
           \PY{k}{class} \PY{n+nc}{Orbiter}\PY{p}{:}
               \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
@@ -314,7 +396,7 @@
                   \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{d\PYZus{}mdry} \PY{o}{=} \PY{l+m+mi}{2800}\PY{p}{;} \PY{c+c1}{\PYZsh{}kg}
                   
                   \PY{c+c1}{\PYZsh{}assign operating limits}
-                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{d\PYZus{}a\PYZus{}max} \PY{o}{=} \PY{l+m+mi}{2}\PY{o}{*}\PY{l+m+mf}{0.5}\PY{o}{/}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{d\PYZus{}mdry}\PY{p}{;} \PY{c+c1}{\PYZsh{}assuming 0.5N for vehicle mass of 5000 kg}
+                  \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{d\PYZus{}a\PYZus{}max} \PY{o}{=} \PY{l+m+mi}{10}\PY{o}{*}\PY{l+m+mf}{0.5}\PY{o}{/}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{d\PYZus{}mdry}\PY{p}{;} \PY{c+c1}{\PYZsh{}assuming 0.5N for vehicle mass of 5000 kg}
                   
                   \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{d\PYZus{}tf\PYZus{}max} \PY{o}{=}\PY{l+m+mi}{5}\PY{o}{*}\PY{n}{year}\PY{p}{;}
                   
@@ -378,18 +460,17 @@
           
               \PY{c+c1}{\PYZsh{} event condition}
               \PY{n}{result}\PY{o}{.}\PY{n}{equal}\PY{p}{(}\PY{n}{r}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{r0}\PY{p}{)}
-              \PY{n}{result}\PY{o}{.}\PY{n}{equal}\PY{p}{(}\PY{n}{vr}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vr0}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{}result.equal(vt[0], obj.vt0)}
               \PY{n}{result}\PY{o}{.}\PY{n}{equal}\PY{p}{(}\PY{n}{r}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{rf}\PY{p}{)}
-              \PY{n}{result}\PY{o}{.}\PY{n}{equal}\PY{p}{(}\PY{n}{vr}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vrf}\PY{p}{)}
+              
+              \PY{n}{result}\PY{o}{.}\PY{n}{equal}\PY{p}{(}\PY{n}{vr}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vr0}\PY{p}{)}
+              \PY{n}{result}\PY{o}{.}\PY{n}{equal}\PY{p}{(}\PY{n}{vt}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{p}{(}\PY{p}{(}\PY{n}{v\PYZus{}earth}\PY{o}{\PYZhy{}}\PY{p}{(}\PY{n}{vinf}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2}\PY{o}{\PYZhy{}}\PY{p}{(}\PY{n}{vr}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{vref}\PY{o}{*}\PY{n}{u}\PY{o}{.}\PY{n}{m}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2}\PY{p}{)}\PY{o}{*}\PY{o}{*}\PY{l+m+mf}{0.5}\PY{p}{)}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{m}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{o}{.}\PY{n}{value}\PY{p}{)}\PY{o}{/}\PY{n}{obj}\PY{o}{.}\PY{n}{vref}\PY{p}{)} \PY{c+c1}{\PYZsh{}assuming vt is smaller than ve}
+              \PY{c+c1}{\PYZsh{}result.equal(vt[\PYZhy{}1], ((v\PYZus{}earth+(vinf**2\PYZhy{}(vr[\PYZhy{}1]*obj.vref*u.m/u.s)**2)**0.5).to(u.m/u.s).value)/obj.vref) \PYZsh{}assuming vt is larger  than ve}
               
               \PY{c+c1}{\PYZsh{}phasing condition}
               \PY{n}{time} \PY{o}{=} \PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}    
               \PY{n}{theta\PYZus{}satellite} \PY{o}{=} \PY{p}{(}\PY{n}{integrate}\PY{o}{.}\PY{n}{trapz}\PY{p}{(}\PY{n}{vt} \PY{o}{/} \PY{n}{r}\PY{p}{,} \PY{n}{time}\PY{p}{)}\PY{p}{)}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{pi}\PY{p}{)}
               \PY{n}{theta\PYZus{}earth} \PY{o}{=} \PY{n}{obj}\PY{o}{.}\PY{n}{w0}\PY{o}{*}\PY{n}{tf}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{pi}\PY{p}{)}\PY{p}{;}
-              \PY{c+c1}{\PYZsh{}print([theta\PYZus{}satellite\PYZpc{}(2*pi),theta\PYZus{}earth\PYZpc{}(2*pi)])}
               \PY{n}{result}\PY{o}{.}\PY{n}{equal}\PY{p}{(}\PY{n}{theta\PYZus{}satellite}\PY{o}{\PYZpc{}}\PY{k}{1},theta\PYZus{}earth\PYZpc{}1)
-              \PY{c+c1}{\PYZsh{}result.equal(prob.time\PYZus{}final(0)\PYZpc{}obj.year,0) \PYZsh{}time must be integral interval of a year}
               
               \PY{n}{obj}\PY{o}{.}\PY{n}{theta\PYZus{}satellite} \PY{o}{=} \PY{n}{theta\PYZus{}satellite}\PY{p}{;}
               \PY{n}{obj}\PY{o}{.}\PY{n}{theta\PYZus{}earth}     \PY{o}{=} \PY{n}{theta\PYZus{}earth}\PY{p}{;}
@@ -407,26 +488,27 @@
           
               \PY{n}{result} \PY{o}{=} \PY{n}{Condition}\PY{p}{(}\PY{p}{)}
           
-              \PY{c+c1}{\PYZsh{} lower bounds}
+              \PY{c+c1}{\PYZsh{} ranges}
               \PY{n}{result}\PY{o}{.}\PY{n}{lower\PYZus{}bound}\PY{p}{(}\PY{n}{r}\PY{p}{,} \PY{l+m+mf}{0.5}\PY{o}{*}\PY{n+nb}{min}\PY{p}{(}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{rf}\PY{p}{)}\PY{p}{)}
-              \PY{n}{result}\PY{o}{.}\PY{n}{lower\PYZus{}bound}\PY{p}{(}\PY{n}{vt}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{vt0}\PY{o}{\PYZhy{}}\PY{n}{obj}\PY{o}{.}\PY{n}{v\PYZus{}c3}\PY{p}{)}
+              \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{r}\PY{p}{,} \PY{l+m+mi}{4}\PY{o}{*}\PY{n+nb}{max}\PY{p}{(}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{rf}\PY{p}{)}\PY{p}{)}
               
               \PY{n}{result}\PY{o}{.}\PY{n}{lower\PYZus{}bound}\PY{p}{(}\PY{n}{ur}\PY{p}{,} \PY{o}{\PYZhy{}}\PY{n}{obj}\PY{o}{.}\PY{n}{u\PYZus{}max}\PY{p}{)}
               \PY{n}{result}\PY{o}{.}\PY{n}{lower\PYZus{}bound}\PY{p}{(}\PY{n}{ut}\PY{p}{,} \PY{o}{\PYZhy{}}\PY{n}{obj}\PY{o}{.}\PY{n}{u\PYZus{}max}\PY{p}{)}
-              \PY{n}{result}\PY{o}{.}\PY{n}{lower\PYZus{}bound}\PY{p}{(}\PY{n}{tf}\PY{p}{,} \PY{l+m+mf}{0.0}\PY{p}{)}
-              \PY{n}{result}\PY{o}{.}\PY{n}{lower\PYZus{}bound}\PY{p}{(}\PY{n}{vt}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{vtf}\PY{p}{)} \PY{c+c1}{\PYZsh{}requries minimum final tangential speed, no upper bound set. }
-          
-              \PY{c+c1}{\PYZsh{} upper bounds}
-              \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{r}\PY{p}{,} \PY{l+m+mi}{4}\PY{o}{*}\PY{n+nb}{max}\PY{p}{(}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{rf}\PY{p}{)}\PY{p}{)}
-              \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{vt}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{vt0}\PY{o}{+}\PY{n}{obj}\PY{o}{.}\PY{n}{v\PYZus{}c3}\PY{p}{)}
-              
               \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{ur}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{u\PYZus{}max}\PY{p}{)}
               \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{ut}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{u\PYZus{}max}\PY{p}{)}
               \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{square}\PY{p}{(}\PY{n}{ur}\PY{p}{)} \PY{o}{+} \PY{n}{np}\PY{o}{.}\PY{n}{square}\PY{p}{(}\PY{n}{ut}\PY{p}{)}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{u\PYZus{}max}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{}result.upper\PYZus{}bound(ut1, obj.u\PYZus{}max)}
-              \PY{c+c1}{\PYZsh{}result.upper\PYZus{}bound(ur2, obj.u\PYZus{}max)}
-              \PY{c+c1}{\PYZsh{}result.upper\PYZus{}bound(ut2, obj.u\PYZus{}max)}
+              
+              
+              \PY{c+c1}{\PYZsh{}starting    }
+              \PY{n}{result}\PY{o}{.}\PY{n}{lower\PYZus{}bound}\PY{p}{(}\PY{n}{tf}\PY{p}{,} \PY{l+m+mf}{0.0}\PY{p}{)}
+              \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{vt}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{vt0}\PY{o}{+}\PY{n}{obj}\PY{o}{.}\PY{n}{v\PYZus{}c3}\PY{p}{)}
+              
+              \PY{c+c1}{\PYZsh{}finishing}
               \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{tf}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{tf\PYZus{}max}\PY{p}{)}
+              \PY{n}{result}\PY{o}{.}\PY{n}{lower\PYZus{}bound}\PY{p}{(}\PY{n}{vr}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,}\PY{o}{\PYZhy{}}\PY{n}{ve\PYZus{}minus\PYZus{}radial\PYZus{}max}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{m}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{o}{.}\PY{n}{value}\PY{o}{/}\PY{n}{obj}\PY{o}{.}\PY{n}{lref}\PY{p}{)}
+              \PY{n}{result}\PY{o}{.}\PY{n}{upper\PYZus{}bound}\PY{p}{(}\PY{n}{vr}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,}\PY{o}{+}\PY{n}{ve\PYZus{}minus\PYZus{}radial\PYZus{}max}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{m}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{o}{.}\PY{n}{value}\PY{o}{/}\PY{n}{obj}\PY{o}{.}\PY{n}{lref}\PY{p}{)}
+          
+          
           
               \PY{k}{return} \PY{n}{result}\PY{p}{(}\PY{p}{)}
           
@@ -446,7 +528,7 @@
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}204}]:} \PY{c+c1}{\PYZsh{} ========================}
+{\color{incolor}In [{\color{incolor}382}]:} \PY{c+c1}{\PYZsh{} ========================}
           \PY{n}{plt}\PY{o}{.}\PY{n}{close}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{all}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
           \PY{n}{plt}\PY{o}{.}\PY{n}{ion}\PY{p}{(}\PY{p}{)}
           \PY{c+c1}{\PYZsh{} Program Starting Point}
@@ -458,7 +540,7 @@
           \PY{n}{n} \PY{o}{=} \PY{p}{[}\PY{l+m+mi}{100}\PY{p}{]}
           \PY{n}{num\PYZus{}states} \PY{o}{=} \PY{p}{[}\PY{l+m+mi}{3}\PY{p}{]}
           \PY{n}{num\PYZus{}controls} \PY{o}{=} \PY{p}{[}\PY{l+m+mi}{2}\PY{p}{]}
-          \PY{n}{max\PYZus{}iteration} \PY{o}{=} \PY{l+m+mi}{6}
+          \PY{n}{max\PYZus{}iteration} \PY{o}{=} \PY{l+m+mi}{2}
           
           \PY{n}{flag\PYZus{}savefig} \PY{o}{=} \PY{k+kc}{False}
           
@@ -472,16 +554,16 @@
           \PY{c+c1}{\PYZsh{} ========================}
           \PY{c+c1}{\PYZsh{} Initial parameter guess}
           \PY{n}{t\PYZus{}guess}  \PY{o}{=}                       \PY{p}{[}\PY{l+m+mi}{0}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{tf\PYZus{}max}\PY{o}{/}\PY{l+m+mi}{2}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{tf\PYZus{}max}\PY{p}{]}
-          \PY{n}{r\PYZus{}guess}  \PY{o}{=} \PY{p}{[}\PY{n}{r}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}    \PY{k}{for} \PY{n}{r} \PY{o+ow}{in} \PY{p}{[}\PY{l+m+mi}{1}\PY{p}{,} \PY{l+m+mf}{1.6}\PY{p}{,} \PY{l+m+mf}{1.0}\PY{p}{]}\PY{p}{]}
+          \PY{n}{r\PYZus{}guess}  \PY{o}{=} \PY{p}{[}\PY{n}{r}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}    \PY{k}{for} \PY{n}{r} \PY{o+ow}{in} \PY{p}{[}\PY{l+m+mi}{1}\PY{p}{,} \PY{l+m+mf}{1.3}\PY{p}{,} \PY{l+m+mf}{1.0}\PY{p}{]}\PY{p}{]}
           
           \PY{n}{Guess}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t\PYZus{}guess}\PY{p}{,}\PY{n}{r\PYZus{}guess}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{r}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{time}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{r}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
           \PY{k}{if}\PY{p}{(}\PY{n}{flag\PYZus{}savefig}\PY{p}{)}\PY{p}{:}\PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{n}{savefig\PYZus{}dir} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{guess\PYZus{}r}\PY{l+s+s2}{\PYZdq{}} \PY{o}{+} \PY{n}{savefig\PYZus{}add} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
           
-          \PY{n}{vr\PYZus{}init} \PY{o}{=} \PY{n}{Guess}\PY{o}{.}\PY{n}{linear}\PY{p}{(}\PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vr0}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vrf}\PY{p}{)}
+          \PY{n}{vr\PYZus{}init} \PY{o}{=} \PY{n}{Guess}\PY{o}{.}\PY{n}{linear}\PY{p}{(}\PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
           \PY{n}{Guess}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}\PY{p}{,} \PY{n}{vr\PYZus{}init}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{vr}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{time}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{vr}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
           \PY{k}{if}\PY{p}{(}\PY{n}{flag\PYZus{}savefig}\PY{p}{)}\PY{p}{:}\PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{n}{savefig\PYZus{}dir} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{guess\PYZus{}vr}\PY{l+s+s2}{\PYZdq{}} \PY{o}{+} \PY{n}{savefig\PYZus{}add} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
           
-          \PY{n}{vt\PYZus{}init} \PY{o}{=} \PY{n}{Guess}\PY{o}{.}\PY{n}{linear}\PY{p}{(}\PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vt0} \PY{o}{+} \PY{n}{obj}\PY{o}{.}\PY{n}{v\PYZus{}c3}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vtf}\PY{p}{)}
+          \PY{n}{vt\PYZus{}init} \PY{o}{=} \PY{n}{Guess}\PY{o}{.}\PY{n}{linear}\PY{p}{(}\PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vt0}\PY{p}{,} \PY{n}{obj}\PY{o}{.}\PY{n}{vt0}\PY{p}{)}
           \PY{n}{Guess}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}\PY{p}{,} \PY{n}{vt\PYZus{}init}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{vt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{time}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{vt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
           \PY{k}{if}\PY{p}{(}\PY{n}{flag\PYZus{}savefig}\PY{p}{)}\PY{p}{:}\PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{n}{savefig\PYZus{}dir} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{guess\PYZus{}vt}\PY{l+s+s2}{\PYZdq{}} \PY{o}{+} \PY{n}{savefig\PYZus{}add} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
           
@@ -497,32 +579,32 @@
 
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_1_0.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_3_0.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_1_1.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_3_1.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_1_2.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_3_2.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_1_3.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_3_3.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_1_4.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_3_4.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}205}]:} \PY{n}{t\PYZus{}guess\PYZus{}f} \PY{o}{=} \PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}\PY{p}{;}
+{\color{incolor}In [{\color{incolor}383}]:} \PY{n}{t\PYZus{}guess\PYZus{}f} \PY{o}{=} \PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}all\PYZus{}section}\PY{p}{;}
           
           \PY{n}{r\PYZus{}interp} \PY{o}{=} \PY{n}{interpolate}\PY{o}{.}\PY{n}{interp1d}\PY{p}{(}\PY{n}{t\PYZus{}guess}\PY{p}{,}\PY{n}{r\PYZus{}guess}\PY{p}{)}
           
@@ -555,76 +637,40 @@
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}206}]:} \PY{n}{prob}\PY{o}{.}\PY{n}{solve}\PY{p}{(}\PY{n}{obj}\PY{p}{,} \PY{n}{display\PYZus{}func}\PY{p}{,} \PY{n}{ftol}\PY{o}{=}\PY{l+m+mf}{1e\PYZhy{}2}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}384}]:} \PY{n}{prob}\PY{o}{.}\PY{n}{solve}\PY{p}{(}\PY{n}{obj}\PY{p}{,} \PY{n}{display\PYZus{}func}\PY{p}{,} \PY{n}{ftol}\PY{o}{=}\PY{l+m+mf}{1e\PYZhy{}2}\PY{p}{)}
 \end{Verbatim}
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
 ---- iteration : 1 ----
 Iteration limit exceeded    (Exit mode 9)
-            Current function value: 0.04205824317458223
+            Current function value: 0.04520012599098969
             Iterations: 26
-            Function evaluations: 13092
+            Function evaluations: 13093
             Gradient evaluations: 26
 Iteration limit exceeded
-tf: 4.93127 years
-rmax: 1.68320 AU
-theta\_sat: 4.92178
-theta\_E  : 4.92132
+tf: 4.91477 years
+rmax: 1.11966 AU
+theta\_sat: 4.90492
+theta\_E  : 4.90486
 
 ---- iteration : 2 ----
 Iteration limit exceeded    (Exit mode 9)
-            Current function value: 0.03780910733231096
+            Current function value: 0.035517633554843164
             Iterations: 26
-            Function evaluations: 13130
+            Function evaluations: 13126
             Gradient evaluations: 26
 Iteration limit exceeded
-tf: 4.93650 years
-rmax: 1.68151 AU
-theta\_sat: 4.92665
-theta\_E  : 4.92654
-
----- iteration : 3 ----
-Iteration limit exceeded    (Exit mode 9)
-            Current function value: 0.03669521957343568
-            Iterations: 26
-            Function evaluations: 13145
-            Gradient evaluations: 26
-Iteration limit exceeded
-tf: 4.93958 years
-rmax: 1.67989 AU
-theta\_sat: 4.92969
-theta\_E  : 4.92962
-
----- iteration : 4 ----
-Iteration limit exceeded    (Exit mode 9)
-            Current function value: 0.03614142238093274
-            Iterations: 26
-            Function evaluations: 13155
-            Gradient evaluations: 26
-Iteration limit exceeded
-tf: 4.94091 years
-rmax: 1.67955 AU
-theta\_sat: 4.93100
-theta\_E  : 4.93094
-
----- iteration : 5 ----
-Optimization terminated successfully.    (Exit mode 0)
-            Current function value: 0.03602142533868122
-            Iterations: 7
-            Function evaluations: 3545
-            Gradient evaluations: 7
-Optimization terminated successfully.
-tf: 4.94100 years
-rmax: 1.67950 AU
-theta\_sat: 4.93109
-theta\_E  : 4.93103
+tf: 4.92097 years
+rmax: 1.08992 AU
+theta\_sat: 4.91109
+theta\_E  : 4.91104
 
 
     \end{Verbatim}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}214}]:} \PY{c+c1}{\PYZsh{} ========================}
+{\color{incolor}In [{\color{incolor}385}]:} \PY{c+c1}{\PYZsh{} ========================}
           \PY{c+c1}{\PYZsh{} Post Process}
           \PY{c+c1}{\PYZsh{} \PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}\PYZhy{}}
           \PY{c+c1}{\PYZsh{} Convert parameter vector to variable}
@@ -764,58 +810,60 @@ theta\_E  : 4.93103
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-/Users/Devansh/anaconda3/lib/python3.6/site-packages/matplotlib/cbook/deprecation.py:107: MatplotlibDeprecationWarning: Adding an axes using the same arguments as a previous axes currently reuses the earlier instance.  In a future version, a new instance will always be created and returned.  Meanwhile, this warning can be suppressed, and the future behavior ensured, by passing a unique label to each axes instance.
-  warnings.warn(message, mplDeprecation, stacklevel=1)
+/Users/Devansh/anaconda3/lib/python3.6/site-packages/matplotlib/cbook/deprecation.py:107: MatplotlibDeprecationWarning:
+
+Adding an axes using the same arguments as a previous axes currently reuses the earlier instance.  In a future version, a new instance will always be created and returned.  Meanwhile, this warning can be suppressed, and the future behavior ensured, by passing a unique label to each axes instance.
+
 
     \end{Verbatim}
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_1.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_1.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_2.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_2.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_3.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_3.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_4.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_4.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_5.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_5.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_6.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_6.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_7.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_7.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_8.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_8.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_4_9.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_6_9.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}215}]:} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}386}]:} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{p}{)}
           \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{time\PYZus{}fine}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year}\PY{p}{,}\PY{l+m+mi}{360}\PY{o}{*}\PY{p}{(}\PY{p}{(}\PY{n}{theta\PYZus{}fine}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{pi}\PY{p}{)}\PY{p}{)}\PY{o}{\PYZpc{}}\PY{k}{1}))
           \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{time\PYZus{}fine}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year}\PY{p}{,}\PY{l+m+mi}{360}\PY{o}{*}\PY{p}{(}\PY{p}{(}\PY{n}{obj}\PY{o}{.}\PY{n}{w0}\PY{o}{*}\PY{n}{time\PYZus{}fine}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{pi}\PY{p}{)}\PY{p}{)}\PY{o}{\PYZpc{}}\PY{k}{1}))
           \PY{n}{plt}\PY{o}{.}\PY{n}{grid}\PY{p}{(}\PY{p}{)}
@@ -823,12 +871,12 @@ theta\_E  : 4.93103
 
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_5_0.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_7_0.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}216}]:} \PY{c+c1}{\PYZsh{}determine how long the transfer will take}
+{\color{incolor}In [{\color{incolor}387}]:} \PY{c+c1}{\PYZsh{}determine how long the transfer will take}
           \PY{n}{final\PYZus{}time} \PY{o}{=} \PY{n}{prob}\PY{o}{.}\PY{n}{time\PYZus{}final\PYZus{}all\PYZus{}section}\PY{p}{(}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}
           \PY{n}{d\PYZus{}final\PYZus{}time} \PY{o}{=} \PY{n}{final\PYZus{}time}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}
           \PY{n}{year} \PY{o}{=} \PY{n}{obj}\PY{o}{.}\PY{n}{year} \PY{c+c1}{\PYZsh{}seconds}
@@ -858,45 +906,45 @@ theta\_E  : 4.93103
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-Transfer time:  4.94100209694 years
-Required C3:    1.92296694487 km2/s2,  retro
-Required Delta-v:  16646.6336807 m/s
-Propellant mass fraction:  0.568311821203125
-Arriving phase:  30.617358576 rad
-Arriving phase:  314.245426244 deg
-Earth phase:     335.171782187 deg
+Transfer time:  4.92096998823 years
+Required C3:    0.489739831817 km2/s2,  retro
+Required Delta-v:  16378.9802408 m/s
+Propellant mass fraction:  0.5624415404240986
+Arriving phase:  30.3695882072 rad
+Arriving phase:  300.049229825 deg
+Earth phase:     327.974773681 deg
 
     \end{Verbatim}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}217}]:} \PY{p}{(}\PY{n}{theta\PYZus{}fine}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{pi}\PY{p}{)}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}388}]:} \PY{p}{(}\PY{n}{theta\PYZus{}fine}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{pi}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
 
 \begin{Verbatim}[commandchars=\\\{\}]
-{\color{outcolor}Out[{\color{outcolor}217}]:} 4.8729039617882073
+{\color{outcolor}Out[{\color{outcolor}388}]:} 4.8334700828475254
 \end{Verbatim}
             
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}218}]:} \PY{p}{(}\PY{p}{(}\PY{n}{obj}\PY{o}{.}\PY{n}{w0}\PY{o}{*}\PY{n}{final\PYZus{}time}\PY{p}{)}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{pi}\PY{p}{)}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}389}]:} \PY{p}{(}\PY{p}{(}\PY{n}{obj}\PY{o}{.}\PY{n}{w0}\PY{o}{*}\PY{n}{final\PYZus{}time}\PY{p}{)}\PY{o}{/}\PY{p}{(}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{pi}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
 
 \begin{Verbatim}[commandchars=\\\{\}]
-{\color{outcolor}Out[{\color{outcolor}218}]:} 4.9310327282964943
+{\color{outcolor}Out[{\color{outcolor}389}]:} 4.911041038002165
 \end{Verbatim}
             
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}219}]:} \PY{l+m+mf}{0.1}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2}\PY{o}{*}\PY{l+m+mi}{30}
+{\color{incolor}In [{\color{incolor}390}]:} \PY{l+m+mf}{0.1}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2}\PY{o}{*}\PY{l+m+mi}{30}
 \end{Verbatim}
 
 
 \begin{Verbatim}[commandchars=\\\{\}]
-{\color{outcolor}Out[{\color{outcolor}219}]:} 0.30000000000000004
+{\color{outcolor}Out[{\color{outcolor}390}]:} 0.30000000000000004
 \end{Verbatim}
             
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}220}]:} \PY{c+c1}{\PYZsh{}integrate the dynamics from the end point}
+{\color{incolor}In [{\color{incolor}393}]:} \PY{c+c1}{\PYZsh{}integrate the dynamics from the end point}
           
           \PY{c+c1}{\PYZsh{}define the passive dynamics}
           \PY{k+kn}{from} \PY{n+nn}{scipy}\PY{n+nn}{.}\PY{n+nn}{integrate} \PY{k}{import} \PY{n}{odeint}
@@ -913,20 +961,23 @@ Earth phase:     335.171782187 deg
               \PY{k}{return} \PY{n}{dx}
           
           \PY{c+c1}{\PYZsh{}integrate using odeint}
-          \PY{n}{t\PYZus{}passive} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{linspace}\PY{p}{(}\PY{n}{final\PYZus{}time}\PY{p}{,}\PY{n}{final\PYZus{}time}\PY{o}{+}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{year}\PY{o}{/}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{p}{,}\PY{l+m+mi}{10000}\PY{p}{)}
+          \PY{n}{t\PYZus{}passive} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{linspace}\PY{p}{(}\PY{n}{final\PYZus{}time}\PY{p}{,}\PY{n}{final\PYZus{}time}\PY{o}{+}\PY{l+m+mi}{4}\PY{o}{*}\PY{n}{year}\PY{o}{/}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{p}{,}\PY{l+m+mi}{10000}\PY{p}{)}
           \PY{n}{x\PYZus{}passive} \PY{o}{=} \PY{n}{odeint}\PY{p}{(}\PY{n}{passiveDynamics}\PY{p}{,}\PY{p}{[}\PY{n}{r}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,}\PY{n}{vr}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,}\PY{n}{vt}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{]}\PY{p}{,}\PY{n}{t\PYZus{}passive}\PY{p}{)}
+          \PY{n}{x\PYZus{}flyby} \PY{o}{=} \PY{n}{odeint}\PY{p}{(}\PY{n}{passiveDynamics}\PY{p}{,}\PY{p}{[}\PY{n}{r}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{ve\PYZus{}plus\PYZus{}min}\PY{o}{.}\PY{n}{to}\PY{p}{(}\PY{n}{u}\PY{o}{.}\PY{n}{m}\PY{o}{/}\PY{n}{u}\PY{o}{.}\PY{n}{s}\PY{p}{)}\PY{o}{.}\PY{n}{value}\PY{o}{/}\PY{n}{obj}\PY{o}{.}\PY{n}{vref}\PY{p}{]}\PY{p}{,}\PY{n}{t\PYZus{}passive}\PY{p}{)}
           
           \PY{c+c1}{\PYZsh{}extract the radial position}
           \PY{n}{r\PYZus{}passive} \PY{o}{=} \PY{n}{x\PYZus{}passive}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{0}\PY{p}{]}
+          \PY{n}{r\PYZus{}flyby} \PY{o}{=} \PY{n}{x\PYZus{}flyby}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{0}\PY{p}{]}
           
           
           \PY{c+c1}{\PYZsh{}plot the final solution}
           \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{p}{)}
           \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{time}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year}\PY{p}{,} \PY{n}{r}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{b}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
           \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t\PYZus{}passive}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year}\PY{p}{,} \PY{n}{r\PYZus{}passive}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{r}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{final\PYZus{}time}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year} \PY{o}{+} \PY{l+m+mi}{2}\PY{p}{]}\PY{p}{,}\PY{p}{[}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}\PY{p}{]}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k:}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{final\PYZus{}time}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year} \PY{o}{+} \PY{l+m+mi}{2}\PY{p}{]}\PY{p}{,}\PY{p}{[}\PY{n}{obj}\PY{o}{.}\PY{n}{rf}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{rf}\PY{p}{]}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k:}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{final\PYZus{}time}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year} \PY{o}{+} \PY{l+m+mi}{2}\PY{p}{]}\PY{p}{,}\PY{p}{[}\PY{n}{obj}\PY{o}{.}\PY{n}{d\PYZus{}final\PYZus{}apogee}\PY{o}{/}\PY{n}{obj}\PY{o}{.}\PY{n}{lref}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{d\PYZus{}final\PYZus{}apogee}\PY{o}{/}\PY{n}{obj}\PY{o}{.}\PY{n}{lref}\PY{p}{]}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k:}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{t\PYZus{}passive}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year}\PY{p}{,} \PY{n}{r\PYZus{}flyby}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{g}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{final\PYZus{}time}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year} \PY{o}{+} \PY{l+m+mi}{4}\PY{p}{]}\PY{p}{,}\PY{p}{[}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{r0}\PY{p}{]}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k:}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{final\PYZus{}time}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year} \PY{o}{+} \PY{l+m+mi}{4}\PY{p}{]}\PY{p}{,}\PY{p}{[}\PY{n}{obj}\PY{o}{.}\PY{n}{rf}\PY{p}{,}\PY{n}{obj}\PY{o}{.}\PY{n}{rf}\PY{p}{]}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k:}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{,}\PY{n}{final\PYZus{}time}\PY{o}{*}\PY{n}{obj}\PY{o}{.}\PY{n}{tref}\PY{o}{/}\PY{n}{year} \PY{o}{+} \PY{l+m+mi}{4}\PY{p}{]}\PY{p}{,}\PY{p}{[}\PY{l+m+mf}{9.6}\PY{p}{,} \PY{l+m+mf}{9.6}\PY{p}{]}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k:}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
           \PY{n}{plt}\PY{o}{.}\PY{n}{grid}\PY{p}{(}\PY{p}{)}
           \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{time [years]}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
           \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{radius [AU]}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
@@ -936,10 +987,19 @@ Earth phase:     335.171782187 deg
 
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_10_0.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_12_0.png}
     \end{center}
     { \hspace*{\fill} \\}
     
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}392}]:} \PY{n}{vr}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}392}]:} -7.5371161590261191e-08
+\end{Verbatim}
+            
 
     % Add a bibliography block to the postdoc
     
