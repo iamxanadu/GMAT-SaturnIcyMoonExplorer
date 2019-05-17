@@ -174,6 +174,44 @@ class RouteBuilder(object):
         score = f_term + g_term + c3_term
 #         print("trying:", x, score)
         return score
+    
+    def opt_ej(self):
+        ej_bounds = [(-365*6, -365*1), (-600,-300), (90.001,180), (-180,-14), (95,180)]
+        x0 = [
+            -700,  # JS delta t 
+            -350,  # EJ delta t
+            120,   # J theta_inf
+            -90,   # VE delta t
+            120]   # E theta_inf
+        
+        V_epoch = Time("2041-01-08", scale=TIME_SCALE)
+        
+        minimizer_kwargs = {
+            'tol': 1e-3,
+            'bounds': ej_bounds,
+    #             'method': 'COBYLA'
+        }
+        opt_out = opt.basinhopping(self.find_flyby,
+                                   x0=x0,
+                                   niter=5,
+                                   minimizer_kwargs=minimizer_kwargs,
+                                   disp=True).x
+                              
+        (js_delta_t, ej_delta_t, j_angle, ve_delta_t, e_angle) = opt_out 
+        
+    #         e_epoch = J_orbit.epoch + ej_delta_t*u.day
+    #         v_epoch = e_epoch + ve_delta_t*u.day
+        
+        E_epoch = V_epoch - ve_delta_t*u.day
+        J_epoch = E_epoch - ej_delta_t*u.day
+        S_epoch = J_epoch - js_delta_t*u.day
+        
+        return {'s_epoch': S_epoch, 'j_epoch': J_epoch, 'e_epoch': E_epoch,
+                'v_epoch': V_epoch, 'j_angle': j_angle, 'e_angle': e_angle,
+                'js_delta_t': js_delta_t, 'ej_delta_t': ej_delta_t,
+                've_delta_t': ve_delta_t,
+                'opt_out': opt_out}
+        return (j_angle, E_epoch, e_angle, V_epoch, opt_out)
         
     def trajectory_calculator(self, route, plot_on=False, disp_on=False):
         ref_epoch = Time("2020-01-01", scale=TIME_SCALE)
@@ -206,50 +244,10 @@ class RouteBuilder(object):
                                 'fun':flyby_constraint(1, 4, flyby_list)})
         
         print("first pass")
-        
-        
     
         J_orbit = Orbit.from_body_ephem(Jupiter, time_j)
         
-        def opt_ej():
-            ej_bounds = [(-365*6, -365*1), (-600,-300), (90.001,180), (-180,-14), (95,180)]
-            x0 = [
-                -700,  # JS delta t 
-                -350,  # EJ delta t
-                120,   # J theta_inf
-                -90,   # VE delta t
-                120]   # E theta_inf
-            
-            V_epoch = Time("2041-01-08", scale=TIME_SCALE)
-            
-            minimizer_kwargs = {
-                'tol': 1e-3,
-                'bounds': ej_bounds,
-        #             'method': 'COBYLA'
-            }
-            opt_out = opt.basinhopping(self.find_flyby,
-                                       x0=x0,
-                                       niter=5,
-                                       minimizer_kwargs=minimizer_kwargs,
-                                       disp=True).x
-                                  
-            (js_delta_t, ej_delta_t, j_angle, ve_delta_t, e_angle) = opt_out 
-            
-        #         e_epoch = J_orbit.epoch + ej_delta_t*u.day
-        #         v_epoch = e_epoch + ve_delta_t*u.day
-            
-            E_epoch = V_epoch - ve_delta_t*u.day
-            J_epoch = E_epoch - ej_delta_t*u.day
-            S_epoch = J_epoch - js_delta_t*u.day
-            
-            return {'s_epoch': S_epoch, 'j_epoch': J_epoch, 'e_epoch': E_epoch,
-                    'v_epoch': V_epoch, 'j_angle': j_angle, 'e_angle': e_angle,
-                    'js_delta_t': js_delta_t, 'ej_delta_t': ej_delta_t,
-                    've_delta_t': ve_delta_t,
-                    'opt_out': opt_out}
-            return (j_angle, E_epoch, e_angle, V_epoch, opt_out)
-        
-        results = opt_ej()
+        results = self.opt_ej()
         print("results:", results)
         
         planner = TransferPlanner()
