@@ -226,36 +226,18 @@ class RouteBuilder(object):
         results = self.opt_ej()
         print("results:", results)
         
-        planner = TransferPlanner()
+        epoch_dict = {Venus: results['v_epoch'],
+                      Earth: results['e_epoch'],
+                      Jupiter: results['j_epoch'],
+                      Saturn: results['s_epoch']}
         
-        planner.start_body = Jupiter
-        planner.end_body = Saturn
-        start_epoch = results['j_epoch']
-        end_epoch = results['s_epoch']
+        theta_inf_deg_dict = {Earth: results['e_angle'],
+                              Jupiter: results['j_angle']}
         
-        js_xfer = planner.make_transfer(start_epoch=start_epoch, 
-                                        end_epoch=end_epoch)
-        
-        js_orbit = js_xfer.initial_orbit
-        ej_orbit = xfer_into_xfer(js_orbit, 
-                                     theta_inf_deg=results['j_angle'], 
-                                     target_body=Jupiter,
-                                     origin_body=Earth, 
-                                     origin_epoch_guess=results['e_epoch'])
-        
-        back_ej_orbit = ej_orbit.propagate(results['ej_delta_t']*u.day, 
-                                           method=kepler)
-        ve_orbit = xfer_into_xfer(back_ej_orbit, 
-                                     theta_inf_deg=results['e_angle'], 
-                                     target_body=Earth,
-                                     origin_body=Venus, 
-                                     origin_epoch_guess=results['v_epoch'])
-        
-        back_ve_orbit = ve_orbit.propagate(results['ve_delta_t']*u.day, 
-                                           method=kepler)
+        route = Route(epoch_dict, theta_inf_deg_dict)
         
         V_orbit = Orbit.from_body_ephem(Venus, results['v_epoch'])
-        v_in_venus = back_ve_orbit.v - V_orbit.v
+        v_in_venus = route.departure_orbit(Venus).v - V_orbit.v
         c3_venus = norm(v_in_venus)**2
         print("C3 at venus:", c3_venus)
         
@@ -263,31 +245,19 @@ class RouteBuilder(object):
     #     ej_orbit = xfer_list[1]
     #     ve_orbit = xfer_list[0]         
     
-        planner.start_body = Earth
-        planner.end_body = Jupiter
-        ej_xfer = planner.make_transfer(start_epoch=results['e_epoch'], 
-                                        end_epoch=results['j_epoch'])
-        
-        planner.start_body = Venus
-        planner.end_body = Earth
-        ve_xfer = planner.make_transfer(start_epoch=results['v_epoch'], 
-                                        end_epoch=results['e_epoch'])
+        js_xfer = route.js_xfer
+        ej_xfer = route.ej_xfer
+        ve_xfer = route.ve_xfer
     
-        xfers = {(Venus, Earth):    ve_xfer,
-                 (Earth, Jupiter):  ej_xfer,
-                 (Jupiter, Saturn): js_xfer}
-        
-        encounters = {Venus:   Boundary.from_transfers(None, ve_xfer),
-                      Earth:   Flyby.from_transfers(ve_xfer, ej_xfer),
-                      Jupiter: Flyby.from_transfers(ej_xfer, js_xfer),
-                      Saturn:  Boundary.from_transfers(js_xfer, None)}
+        xfers = route.xfer_dict
+        encounters = route.encounter_dict
         
         ################## Plot ##################  
         if plot_on:
             op = OrbitPlotter2D()
             
-            orbit_v = ve_orbit.initial_orbit
-            orbit_e = ej_orbit.initial_orbit
+            orbit_v = ve_xfer.initial_orbit
+            orbit_e = ej_xfer.initial_orbit
             orbit_j = js_xfer.initial_orbit
             orbit_s = js_xfer.target_orbit 
     
@@ -296,8 +266,8 @@ class RouteBuilder(object):
             op.plot(orbit_j, label="Jupiter Orbit")
             op.plot(orbit_s, label="Saturn Orbit")
     
-            op.plot(ve_orbit.orbit, label="V2->E")
-            op.plot(ej_orbit.orbit, label="E->J")
+            op.plot(ve_xfer.orbit, label="V2->E")
+            op.plot(ej_xfer.orbit, label="E->J")
             op.plot(js_xfer.orbit, label="J->S")
         
         print(tuple((k,v) for k,v in encounters.items()))
@@ -372,7 +342,9 @@ class Route(object):
             back_ve_orbit = ve_orbit.propagate(ve_delta_t, method=kepler, rtol=1e-5)
         except RuntimeError:
             back_ve_orbit = ve_orbit.propagate(ve_delta_t, method=cowell, rtol=1e-5)
-            
+        
+        self._js_xfer = js_xfer
+        
         self._epochs = {Venus: V_epoch,
                         Earth: E_epoch,
                         Jupiter: J_epoch,
@@ -391,6 +363,53 @@ class Route(object):
     @property
     def js_orbit(self):
         return self.js_xfer.initial_orbit
+    
+    @property
+    def js_xfer(self):
+        return self._js_xfer
+    
+    @property
+    def ej_xfer(self):
+        try:
+            return self._ej_xfer
+        except AttributeError:
+            pass  # fall through
+        
+        planner = TransferPlanner()
+        planner.start_body = Earth
+        planner.end_body = Jupiter
+        self._ej_xfer = planner.make_transfer(
+            start_epoch=self.body_epoch(Earth), 
+            end_epoch=self.body_epoch(Jupiter))
+        return self._ej_xfer
+    
+    @property
+    def ve_xfer(self):
+        try:
+            return self._ve_xfer
+        except AttributeError:
+            pass  # fall through
+        
+        planner = TransferPlanner()
+        planner.start_body = Venus
+        planner.end_body = Earth
+        self._ve_xfer = planner.make_transfer(
+            start_epoch=self.body_epoch(Venus), 
+            end_epoch=self.body_epoch(Earth))
+        return self._ve_xfer
+    
+    @property
+    def xfer_dict(self):
+        return {(Venus, Earth):    self.ve_xfer,
+                (Earth, Jupiter):  self.ej_xfer,
+                (Jupiter, Saturn): self.js_xfer}
+        
+    @property
+    def encounter_dict(self):
+        return {Venus:   Boundary.from_transfers(None, self.ve_xfer),
+                Earth:   Flyby.from_transfers(self.ve_xfer, self.ej_xfer),
+                Jupiter: Flyby.from_transfers(self.ej_xfer, self.js_xfer),
+                Saturn:  Boundary.from_transfers(self.js_xfer, None)}
     
     def xfer_error(self, start_body):
         """
