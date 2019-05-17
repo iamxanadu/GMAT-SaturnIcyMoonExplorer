@@ -86,36 +86,61 @@ class RouteBuilder(object):
     def __init__(self, base_epoch_body, base_epoch):
         self.base_epoch_body = base_epoch_body
         self.base_epoch = base_epoch
+        self._epochs_from_x_func = RouteBuilder._gen_epochs_from_x_func(
+            base_epoch_body, base_epoch)
+    
+    @staticmethod
+    def _gen_epochs_from_x_func(base_epoch_body, base_epoch):
+        # x[0] = JS delta t
+        # x[1] = EJ delta t
+        # x[3] = VE delta t
+        if base_epoch_body is Venus:
+            def _inner(x):
+                return {Venus:   base_epoch,
+                        Earth:   base_epoch - x[3],                # v_epoch - x[3]
+                        Jupiter: base_epoch - x[3] - x[1],         # e_epoch - x[1]
+                        Saturn:  base_epoch - x[3] - x[1] - x[0]}  # j_epoch - x[0]
+            
+        elif base_epoch_body is Earth:
+            def _inner(x):
+                return {Earth:   base_epoch,
+                        Venus:   base_epoch + x[3],         # e_epoch + x[3]
+                        Jupiter: base_epoch - x[1],         # e_epoch - x[1]
+                        Saturn:  base_epoch - x[1] - x[0]}  # j_epoch - x[0]
+            
+        elif base_epoch_body is Jupiter:
+            def _inner(x):
+                return {Jupiter: base_epoch,
+                        Earth:   base_epoch + x[1],         # j_epoch + x[1]
+                        Venus:   base_epoch + x[1] + x[3],  # e_epoch + x[3]
+                        Saturn:  base_epoch - x[0]}         # j_epoch - x[0]
+            
+        elif base_epoch_body is Saturn:
+            def _inner(x):
+                return {Saturn:  base_epoch,
+                        Jupiter: base_epoch + x[0],                # s_epoch + x[0]
+                        Earth:   base_epoch + x[0] + x[1],         # j_epoch + x[1]
+                        Venus:   base_epoch + x[0] + x[1] + x[3]}  # e_epoch + x[3]
+        
+        else:
+            assert False, "unknown base epoch body: %s" % base_epoch_body
+        
+        return _inner
+    
+    def epoch_from_x(self, x):
+        return self._epochs_from_x_func(x)
         
     def find_flyby(self, x):
-        V_epoch = self.base_epoch
-#         print("trying:", x)
-        js_delta_t = x[0]
-        ej_delta_t0 = x[1]
-        j_theta_inf_deg = x[2]
-        ve_delta_t = x[3]
-        e_theta_inf_deg = x[4]
         
-#         E_epoch = J_orbit.epoch + ej_delta_t0*u.day
-#         V_epoch = E_epoch + ve_delta_t*u.day
-        E_epoch = V_epoch - ve_delta_t*u.day
-        J_epoch = E_epoch - ej_delta_t0*u.day
-        S_epoch = J_epoch - js_delta_t*u.day
-#         print(V_epoch)
-#         print(E_epoch)
-#         print(J_epoch)
-#         print(S_epoch)
-
-        epoch_dict = {Venus: V_epoch,
-                      Earth: E_epoch,
-                      Jupiter: J_epoch,
-                      Saturn: S_epoch}
+#         print("trying:", x)
+        j_theta_inf_deg = x[2]
+        e_theta_inf_deg = x[4]
+        epoch_dict = self.epoch_from_x(x)
         
         theta_inf_dict = {Earth: e_theta_inf_deg, Jupiter: j_theta_inf_deg}
         
         route = Route(epoch_dict, theta_inf_dict)
-
-        V_orbit = Orbit.from_body_ephem(Venus, V_epoch)
+        V_orbit = route.body_orbit(Venus)
         
         v_in_venus = route.departure_orbit(Venus).v - V_orbit.v
         c3_venus = norm(v_in_venus)**2
@@ -198,7 +223,7 @@ class RouteBuilder(object):
         
         route = Route(epoch_dict, theta_inf_deg_dict)
         
-        V_orbit = Orbit.from_body_ephem(Venus, results['v_epoch'])
+        V_orbit = route.body_orbit(Venus)
         v_in_venus = route.departure_orbit(Venus).v - V_orbit.v
         c3_venus = norm(v_in_venus)**2
         print("C3 at venus:", c3_venus)
@@ -315,6 +340,8 @@ class Route(object):
         self._departure_orbits = {Venus: back_ve_orbit,
                                   Earth: back_ej_orbit,
                                   Jupiter: js_xfer.initial_orbit}
+        
+        self._body_orbits = {}
     
     def departure_orbit(self, from_body):
         return self._departure_orbits[from_body]
@@ -372,6 +399,17 @@ class Route(object):
                 Earth:   Flyby.from_transfers(self.ve_xfer, self.ej_xfer),
                 Jupiter: Flyby.from_transfers(self.ej_xfer, self.js_xfer),
                 Saturn:  Boundary.from_transfers(self.js_xfer, None)}
+        
+    def body_orbit(self, body):
+        try:
+            return self._body_orbits[body]
+        except KeyError:
+            assert body in {Venus, Earth, Jupiter, Saturn}
+            # fall through
+            
+        self._body_orbits[body] = Orbit.from_body_ephem(body, 
+                                                        self.body_epoch(body))
+        return self._body_orbits[body]
     
     def xfer_error(self, start_body):
         """

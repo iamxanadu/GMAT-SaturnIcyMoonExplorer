@@ -37,43 +37,6 @@ assert Time("2020-01-01", scale=TIME_SCALE) - Time("2021-01-01", scale=TIME_SCAL
 def angle_between(vec_a, vec_b):
     return math.acos(vec_a.dot(vec_b)/(norm(vec_a)*norm(vec_b)))
 
-def epochs_from_x_func(base_epoch, base_epoch_body):
-    # x[0] = JS delta t
-    # x[1] = EJ delta t
-    # x[3] = VE delta t
-    if base_epoch_body is Venus:
-        def _inner(x):
-            return {Venus:   base_epoch,
-                    Earth:   base_epoch - x[3],                # v_epoch - x[3]
-                    Jupiter: base_epoch - x[3] - x[1],         # e_epoch - x[1]
-                    Saturn:  base_epoch - x[3] - x[1] - x[0]}  # j_epoch - x[0]
-        
-    elif base_epoch_body is Earth:
-        def _inner(x):
-            return {Earth:   base_epoch,
-                    Venus:   base_epoch + x[3],         # e_epoch + x[3]
-                    Jupiter: base_epoch - x[1],         # e_epoch - x[1]
-                    Saturn:  base_epoch - x[1] - x[0]}  # j_epoch - x[0]
-        
-    elif base_epoch_body is Jupiter:
-        def _inner(x):
-            return {Jupiter: base_epoch,
-                    Earth:   base_epoch + x[1],         # j_epoch + x[1]
-                    Venus:   base_epoch + x[1] + x[3],  # e_epoch + x[3]
-                    Saturn:  base_epoch - x[0]}         # j_epoch - x[0]
-        
-    elif base_epoch_body is Saturn:
-        def _inner(x):
-            return {Saturn:  base_epoch,
-                    Jupiter: base_epoch + x[0],                # s_epoch + x[0]
-                    Earth:   base_epoch + x[0] + x[1],         # j_epoch + x[1]
-                    Venus:   base_epoch + x[0] + x[1] + x[3]}  # e_epoch + x[3]
-    
-    else:
-        assert False, "unknown base epoch body: %s" % base_epoch_body
-    
-    return _inner
-
 def make_transfer(route, ref_epoch, xfer_list, flyby_list):
     planner = TransferPlanner()
     
