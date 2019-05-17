@@ -125,58 +125,34 @@ class RouteBuilder(object):
 #         print(E_epoch)
 #         print(J_epoch)
 #         print(S_epoch)
-        planner = TransferPlanner()
-        planner.start_body = Jupiter
-        planner.end_body = Saturn
-        js_xfer = planner.make_transfer(start_epoch=J_epoch, 
-                                        end_epoch=S_epoch)
-        js_orbit = js_xfer.initial_orbit
-#         print("js:", js_orbit)
-        ej_orbit = xfer_into_xfer(js_orbit, 
-                                 theta_inf_deg=j_theta_inf_deg, 
-                                 target_body=Jupiter,
-                                 origin_body=Earth, 
-                                 origin_epoch_guess=E_epoch)
-        try:
-            back_ej_orbit = ej_orbit.propagate(ej_delta_t0*u.day, method=kepler, rtol=1e-5)
-        except RuntimeError:
-            back_ej_orbit = ej_orbit.propagate(ej_delta_t0*u.day, method=cowell, rtol=1e-5)
-#         print("back_ej:", back_ej_orbit)
-        ve_orbit = xfer_into_xfer(back_ej_orbit, 
-                                 theta_inf_deg=e_theta_inf_deg,
-                                 target_body=Earth, 
-                                 origin_body=Venus, 
-                                 origin_epoch_guess=V_epoch)
-#         print("propagate:", ve_delta_t*u.day)
-        kwargs = {'numiter':100000}
-        try:
-            back_ve_orbit = ve_orbit.propagate(ve_delta_t*u.day, method=kepler, rtol=1e-5)
-        except RuntimeError:
-            back_ve_orbit = ve_orbit.propagate(ve_delta_t*u.day, method=cowell, rtol=1e-5)
-            #method=cowell
-#         print("back_ve:", back_ve_orbit)
 
-        f = xfer_err(ej_orbit, Earth)
-        g = xfer_err(ve_orbit, Venus)
+        epoch_dict = {Venus: V_epoch,
+                      Earth: E_epoch,
+                      Jupiter: J_epoch,
+                      Saturn: S_epoch}
         
+        theta_inf_dict = {Earth: e_theta_inf_deg, Jupiter: j_theta_inf_deg}
+        
+        route = Route(epoch_dict, theta_inf_dict)
+
         V_orbit = Orbit.from_body_ephem(Venus, V_epoch)
         
-        v_in_venus = back_ve_orbit.v - V_orbit.v
+        v_in_venus = route.departure_orbit(Venus).v - V_orbit.v
         c3_venus = norm(v_in_venus)**2
         
         err_weight = .0001
         c3_weight = 100
-        f_term = err_weight * (1-f(back_prop_xfer=back_ej_orbit)/10000)**2
-        g_term = err_weight * (1-g(back_prop_xfer=back_ve_orbit)/10000)**2
+        f_term = err_weight * (1-route.xfer_error(Earth)/10000)**2
+        g_term = err_weight * (1-route.xfer_error(Venus)/10000)**2
         c3_term = c3_weight * (c3_venus.value)**2
         
-        print("score terms: %10.0f %10.0f %9.0f" % (f_term, g_term, c3_term))
+#         print("score terms: %10.0f %10.0f %9.0f" % (f_term, g_term, c3_term))
         score = f_term + g_term + c3_term
 #         print("trying:", x, score)
         return score
     
     def opt_ej(self):
-        ej_bounds = [(-365*6, -365*1), (-600,-300), (90.001,180), (-180,-14), (95,180)]
+        ej_bounds = [(-365*6, -365*2), (-600,-300), (90.001,180), (-180,-14), (95,180)]
         x0 = [
             -700,  # JS delta t 
             -350,  # EJ delta t
@@ -356,3 +332,77 @@ class RouteBuilder(object):
         print("delta_v_j: %3s"    % encounters[Jupiter].delta_v)
         
         return (sum(delta_vs), orbits, xfer_orbits, delta_vs, times)
+    
+class Route(object):
+    def __init__(self, epoch_dict, theta_inf_dict):
+        V_epoch = epoch_dict[Venus] 
+        E_epoch = epoch_dict[Earth] 
+        J_epoch = epoch_dict[Jupiter] 
+        S_epoch = epoch_dict[Saturn] 
+        
+        ej_delta_t0 = E_epoch - J_epoch
+        j_theta_inf_deg = theta_inf_dict[Jupiter]
+        ve_delta_t = V_epoch - E_epoch
+        e_theta_inf_deg = theta_inf_dict[Earth]
+        
+        planner = TransferPlanner()
+        planner.start_body = Jupiter
+        planner.end_body = Saturn
+        js_xfer = planner.make_transfer(start_epoch=J_epoch, 
+                                        end_epoch=S_epoch)
+        
+        js_orbit = js_xfer.initial_orbit
+        ej_orbit = xfer_into_xfer(js_orbit, 
+                                 theta_inf_deg=j_theta_inf_deg, 
+                                 target_body=Jupiter,
+                                 origin_body=Earth, 
+                                 origin_epoch_guess=E_epoch)
+        try:
+            back_ej_orbit = ej_orbit.propagate(ej_delta_t0, method=kepler, rtol=1e-5)
+        except RuntimeError:
+            back_ej_orbit = ej_orbit.propagate(ej_delta_t0, method=cowell, rtol=1e-5)
+
+        ve_orbit = xfer_into_xfer(back_ej_orbit, 
+                                 theta_inf_deg=e_theta_inf_deg,
+                                 target_body=Earth, 
+                                 origin_body=Venus, 
+                                 origin_epoch_guess=V_epoch)
+
+        try:
+            back_ve_orbit = ve_orbit.propagate(ve_delta_t, method=kepler, rtol=1e-5)
+        except RuntimeError:
+            back_ve_orbit = ve_orbit.propagate(ve_delta_t, method=cowell, rtol=1e-5)
+            
+        self._epochs = {Venus: V_epoch,
+                        Earth: E_epoch,
+                        Jupiter: J_epoch,
+                        Saturn: S_epoch}
+        
+        self._departure_orbits = {Venus: back_ve_orbit,
+                                  Earth: back_ej_orbit,
+                                  Jupiter: js_xfer.initial_orbit}
+    
+    def departure_orbit(self, from_body):
+        return self._departure_orbits[from_body]
+    
+    def body_epoch(self, at_body):
+        return self._epochs[at_body]
+    
+    @property
+    def js_orbit(self):
+        return self.js_xfer.initial_orbit
+    
+    def xfer_error(self, start_body):
+        """
+        Error in the closest approach to the starting body
+        """
+        back_prop_xfer = self.departure_orbit(start_body)
+        body_orbit = Orbit.from_body_ephem(start_body, 
+                                           back_prop_xfer.epoch)
+#         print("t_f:", base_orbit.epoch)
+#         print("t_0:", back_prop_xfer.epoch)
+#         print("delta_r:", (norm(base_orbit.r) - norm(back_prop_xfer.r)).to(u.au))
+#         print("r_f:", norm(base_orbit.r).to(u.au))
+#         print("r_0:", norm(back_prop_xfer.r).to(u.au))
+        r_err = back_prop_xfer.r - body_orbit.r
+        return norm(r_err) / u.km
