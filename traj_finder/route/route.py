@@ -81,26 +81,6 @@ def xfer_into_xfer(js_orbit, theta_inf_deg, target_body, origin_body, origin_epo
 #     print("result:", result)
     return result
 
-def xfer_err(base_orbit, start_body):
-    """
-    Error in the closest approach to the starting body
-    """
-    def _inner(delta_t=None, back_prop_xfer=None):
-#         print("delta_t:", delta_t*u.day)
-        if back_prop_xfer is None:
-            assert delta_t is not None
-            back_prop_xfer = base_orbit.propagate(delta_t*u.day, method=kepler)
-        start_orbit = Orbit.from_body_ephem(start_body, 
-                                            back_prop_xfer.epoch)
-#         print("t_f:", base_orbit.epoch)
-#         print("t_0:", back_prop_xfer.epoch)
-#         print("delta_r:", (norm(base_orbit.r) - norm(back_prop_xfer.r)).to(u.au))
-#         print("r_f:", norm(base_orbit.r).to(u.au))
-#         print("r_0:", norm(back_prop_xfer.r).to(u.au))
-        r_err = back_prop_xfer.r - start_orbit.r
-        return norm(r_err) / u.km
-    return _inner
-
 class RouteBuilder(object):
     
     def __init__(self, base_epoch_body, base_epoch):
