@@ -107,6 +107,74 @@ class RouteBuilder(object):
         self.base_epoch_body = base_epoch_body
         self.base_epoch = base_epoch
         
+    def find_flyby(self, x):
+        V_epoch = self.base_epoch
+#         print("trying:", x)
+        js_delta_t = x[0]
+        ej_delta_t0 = x[1]
+        j_theta_inf_deg = x[2]
+        ve_delta_t = x[3]
+        e_theta_inf_deg = x[4]
+        
+#         E_epoch = J_orbit.epoch + ej_delta_t0*u.day
+#         V_epoch = E_epoch + ve_delta_t*u.day
+        E_epoch = V_epoch - ve_delta_t*u.day
+        J_epoch = E_epoch - ej_delta_t0*u.day
+        S_epoch = J_epoch - js_delta_t*u.day
+#         print(V_epoch)
+#         print(E_epoch)
+#         print(J_epoch)
+#         print(S_epoch)
+        planner = TransferPlanner()
+        planner.start_body = Jupiter
+        planner.end_body = Saturn
+        js_xfer = planner.make_transfer(start_epoch=J_epoch, 
+                                        end_epoch=S_epoch)
+        js_orbit = js_xfer.initial_orbit
+#         print("js:", js_orbit)
+        ej_orbit = xfer_into_xfer(js_orbit, 
+                                 theta_inf_deg=j_theta_inf_deg, 
+                                 target_body=Jupiter,
+                                 origin_body=Earth, 
+                                 origin_epoch_guess=E_epoch)
+        try:
+            back_ej_orbit = ej_orbit.propagate(ej_delta_t0*u.day, method=kepler, rtol=1e-5)
+        except RuntimeError:
+            back_ej_orbit = ej_orbit.propagate(ej_delta_t0*u.day, method=cowell, rtol=1e-5)
+#         print("back_ej:", back_ej_orbit)
+        ve_orbit = xfer_into_xfer(back_ej_orbit, 
+                                 theta_inf_deg=e_theta_inf_deg,
+                                 target_body=Earth, 
+                                 origin_body=Venus, 
+                                 origin_epoch_guess=V_epoch)
+#         print("propagate:", ve_delta_t*u.day)
+        kwargs = {'numiter':100000}
+        try:
+            back_ve_orbit = ve_orbit.propagate(ve_delta_t*u.day, method=kepler, rtol=1e-5)
+        except RuntimeError:
+            back_ve_orbit = ve_orbit.propagate(ve_delta_t*u.day, method=cowell, rtol=1e-5)
+            #method=cowell
+#         print("back_ve:", back_ve_orbit)
+
+        f = xfer_err(ej_orbit, Earth)
+        g = xfer_err(ve_orbit, Venus)
+        
+        V_orbit = Orbit.from_body_ephem(Venus, V_epoch)
+        
+        v_in_venus = back_ve_orbit.v - V_orbit.v
+        c3_venus = norm(v_in_venus)**2
+        
+        err_weight = .0001
+        c3_weight = 100
+        f_term = err_weight * (1-f(back_prop_xfer=back_ej_orbit)/10000)**2
+        g_term = err_weight * (1-g(back_prop_xfer=back_ve_orbit)/10000)**2
+        c3_term = c3_weight * (c3_venus.value)**2
+        
+        print("score terms: %10.0f %10.0f %9.0f" % (f_term, g_term, c3_term))
+        score = f_term + g_term + c3_term
+#         print("trying:", x, score)
+        return score
+        
     def trajectory_calculator(self, route, plot_on=False, disp_on=False):
         ref_epoch = Time("2020-01-01", scale=TIME_SCALE)
         
@@ -139,73 +207,7 @@ class RouteBuilder(object):
         
         print("first pass")
         
-        def find_flyby(x):
-            V_epoch = self.base_epoch
-    #         print("trying:", x)
-            js_delta_t = x[0]
-            ej_delta_t0 = x[1]
-            j_theta_inf_deg = x[2]
-            ve_delta_t = x[3]
-            e_theta_inf_deg = x[4]
-            
-    #         E_epoch = J_orbit.epoch + ej_delta_t0*u.day
-    #         V_epoch = E_epoch + ve_delta_t*u.day
-            E_epoch = V_epoch - ve_delta_t*u.day
-            J_epoch = E_epoch - ej_delta_t0*u.day
-            S_epoch = J_epoch - js_delta_t*u.day
-    #         print(V_epoch)
-    #         print(E_epoch)
-    #         print(J_epoch)
-    #         print(S_epoch)
-            planner = TransferPlanner()
-            planner.start_body = Jupiter
-            planner.end_body = Saturn
-            js_xfer = planner.make_transfer(start_epoch=J_epoch, 
-                                            end_epoch=S_epoch)
-            js_orbit = js_xfer.initial_orbit
-    #         print("js:", js_orbit)
-            ej_orbit = xfer_into_xfer(js_orbit, 
-                                     theta_inf_deg=j_theta_inf_deg, 
-                                     target_body=Jupiter,
-                                     origin_body=Earth, 
-                                     origin_epoch_guess=E_epoch)
-            try:
-                back_ej_orbit = ej_orbit.propagate(ej_delta_t0*u.day, method=kepler, rtol=1e-5)
-            except RuntimeError:
-                back_ej_orbit = ej_orbit.propagate(ej_delta_t0*u.day, method=cowell, rtol=1e-5)
-    #         print("back_ej:", back_ej_orbit)
-            ve_orbit = xfer_into_xfer(back_ej_orbit, 
-                                     theta_inf_deg=e_theta_inf_deg,
-                                     target_body=Earth, 
-                                     origin_body=Venus, 
-                                     origin_epoch_guess=V_epoch)
-    #         print("propagate:", ve_delta_t*u.day)
-            kwargs = {'numiter':100000}
-            try:
-                back_ve_orbit = ve_orbit.propagate(ve_delta_t*u.day, method=kepler, rtol=1e-5)
-            except RuntimeError:
-                back_ve_orbit = ve_orbit.propagate(ve_delta_t*u.day, method=cowell, rtol=1e-5)
-                #method=cowell
-    #         print("back_ve:", back_ve_orbit)
-    
-            f = xfer_err(ej_orbit, Earth)
-            g = xfer_err(ve_orbit, Venus)
-            
-            V_orbit = Orbit.from_body_ephem(Venus, V_epoch)
-            
-            v_in_venus = back_ve_orbit.v - V_orbit.v
-            c3_venus = norm(v_in_venus)**2
-            
-            err_weight = .0001
-            c3_weight = 100
-            f_term = err_weight * (1-f(back_prop_xfer=back_ej_orbit)/10000)**2
-            g_term = err_weight * (1-g(back_prop_xfer=back_ve_orbit)/10000)**2
-            c3_term = c3_weight * (c3_venus.value)**2
-            
-            print("score terms: %10.0f %10.0f %9.0f" % (f_term, g_term, c3_term))
-            score = f_term + g_term + c3_term
-    #         print("trying:", x, score)
-            return score
+        
     
         J_orbit = Orbit.from_body_ephem(Jupiter, time_j)
         
@@ -225,7 +227,7 @@ class RouteBuilder(object):
                 'bounds': ej_bounds,
         #             'method': 'COBYLA'
             }
-            opt_out = opt.basinhopping(find_flyby,
+            opt_out = opt.basinhopping(self.find_flyby,
                                        x0=x0,
                                        niter=5,
                                        minimizer_kwargs=minimizer_kwargs,
