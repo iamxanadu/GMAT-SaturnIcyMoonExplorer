@@ -20,6 +20,8 @@ from node.flyby import Boundary, Flyby
 import random
 import math
 from poliastro.twobody.orbit import Orbit
+from astropy.units.quantity import Quantity
+from poliastro.twobody.propagation import cowell, kepler
  
 solar_system_ephemeris.set("jpl")
 
@@ -45,22 +47,6 @@ def flyby_constraint(index, minimum, flyby_list):
             return 1
     return _cmp
     
-def take_step(x):
-    print("########## STEP ############")
-    new_x = [y + random.uniform(-100,100) for y in x]
-    while new_x[2] >= new_x[3]:
-        new_x[2] = new_x[2] - 300
-    while new_x[1] >= new_x[2]:
-        new_x[1] = new_x[1] - 300
-    while new_x[0] >= new_x[1]:
-        new_x[0] = new_x[0] - 300
-    return new_x
-                         
-def minima_cb(x, f, accept):
-    ref_epoch = Time("2020-01-01", scale=TIME_SCALE)
-    epochs = [ref_epoch + epoch*u.day for epoch in x]
-    print("minima: ", epochs, " at ", f)
-    
 def make_z_hat(x_vec, y_vec):
     z_vec = cross(x_vec, y_vec)
     z_hat = z_vec / np.linalg.norm(z_vec)
@@ -70,11 +56,61 @@ def make_z_hat(x_vec, y_vec):
 def angle_between(vec_a, vec_b):
     return math.acos(vec_a.dot(vec_b)/(norm(vec_a)*norm(vec_b)))
 
-def projector(plane_normal):
-    def proj_onto_plane(vector):
-        vec_onto_normal = vector.dot(plane_normal)
-        return vector - vec_onto_normal
-    return proj_onto_plane
+def xfer_err(base_xfer, start_body):
+    """
+    Error in the closest approach to the starting body
+    """
+    def _inner(delta_t=None, back_prop_xfer=None):
+#         print("delta_t:", delta_t*u.day)
+        if back_prop_xfer is None:
+            assert delta_t is not None
+            back_prop_xfer = base_xfer.propagate(delta_t*u.day, method=kepler)
+        start_orbit = Orbit.from_body_ephem(start_body, 
+                                            back_prop_xfer.epoch)
+#         print("t_f:", base_xfer.epoch)
+#         print("t_0:", back_prop_xfer.epoch)
+#         print("delta_r:", (norm(base_xfer.r) - norm(back_prop_xfer.r)).to(u.au))
+#         print("r_f:", norm(base_xfer.r).to(u.au))
+#         print("r_0:", norm(back_prop_xfer.r).to(u.au))
+        r_err = back_prop_xfer.r - start_orbit.r
+        return norm(r_err) / u.km
+    return _inner
+
+def xfer_into_xfer(js_orbit, theta_inf_deg, target_body, origin_body, origin_epoch_guess):
+    from vectors import Vector
+    j_theta_inf = math.radians(theta_inf_deg)
+    
+    target_epoch = js_orbit.epoch
+    
+    origin_orbit = Orbit.from_body_ephem(origin_body, origin_epoch_guess)
+    target_orbit = Orbit.from_body_ephem(target_body, target_epoch)
+    
+    x,y,z = cross(origin_orbit.r, target_orbit.r)
+    
+    # ensure z_hat always points "down"
+    if z >= 0:
+        z_hat = -Vector(x,y,z).normalize()
+    else:
+        z_hat = Vector(x,y,z).normalize()
+#     print("z_hat:", z_hat)
+    v_approach_oop = TransferPlanner.match_flyby(js_orbit.v, 
+                                                 target_body, 
+                                                 target_epoch, 
+                                                 j_theta_inf,
+                                                 z_hat)
+    
+    v_approach = TransferPlanner.project_to_plane(v_approach_oop, 
+                                                  Quantity(z_hat.value))
+    
+#     print("v_approach:", v_approach)
+#     print("js_orbit.r:", js_orbit.r)
+#     print("target_epoch:", target_epoch)
+    result = Orbit.from_vectors(Sun, 
+                              js_orbit.r, 
+                              v_approach, 
+                              epoch=target_epoch)
+#     print("result:", result)
+    return result
 
 def trajectory_calculator(route, plot_on=False, disp_on=False):
     ref_epoch = Time("2020-01-01", scale=TIME_SCALE)
@@ -91,12 +127,6 @@ def trajectory_calculator(route, plot_on=False, disp_on=False):
     lower_bound = 0
     upper_bound = 40*365
     
-    bounds = [(-7496.0,-90), (-7466.0,-60), (-7436.0,-30), (-7406.0,0)] 
-#     bounds = [(0, tmod[0]+5*365), 
-#               (0, tmod[1]+5*365), 
-#               (tmod[2]-5*365, tmod[2]+5*365), 
-#               (tmod[3]-5*365, tmod[3]+5*365)]
-    
     options = {'maxiter': 1,'disp': True}
     
     xfer_list = []
@@ -112,51 +142,183 @@ def trajectory_calculator(route, plot_on=False, disp_on=False):
     constraint_list.append({'type': 'ineq', 
                             'fun':flyby_constraint(1, 4, flyby_list)})
     
-    success = False
-    attempts = 0
-    #while not success and attempts < 10:
-    print("optimizing...")
-    obj_func = make_transfer(nodes, ref_epoch, xfer_list, flyby_list)
-    minimizer_kwargs = {"options": options, 
-                        "bounds": bounds,
-                        "constraints": constraint_list}
-#     opt_sol = opt.basinhopping(obj_func,
-#                                x0=tmod,
-#                                take_step=take_step,
-#                                disp=True,
-#                                callback=minima_cb,
-#                                minimizer_kwargs=minimizer_kwargs)
-    opt_sol = opt.minimize(obj_func,
-                           x0=tmod,
-                           options=options,
-                           bounds=bounds,
-                           constraints=constraint_list)
-    print("opt_sol: ", opt_sol)
+    print("first pass")
     
-#     success = opt_sol.success and opt_sol.fun < 25
-#     attempts += 1
+    def find_flyby(x, V_epoch):
+        S_epoch_base = Time("2048-01-08", scale=TIME_SCALE)
+#         print("trying:", x)
+        js_delta_t = x[0]
+        ej_delta_t0 = x[1]
+        j_theta_inf_deg = x[2]
+        ve_delta_t = x[3]
+        e_theta_inf_deg = x[4]
+        
+#         E_epoch = J_orbit.epoch + ej_delta_t0*u.day
+#         V_epoch = E_epoch + ve_delta_t*u.day
+        E_epoch = V_epoch - ve_delta_t*u.day
+        J_epoch = E_epoch - ej_delta_t0*u.day
+        S_epoch = J_epoch - js_delta_t*u.day
+#         print(V_epoch)
+#         print(E_epoch)
+#         print(J_epoch)
+#         print(S_epoch)
+        planner = TransferPlanner()
+        planner.start_body = Jupiter
+        planner.end_body = Saturn
+        js_xfer = planner.make_transfer(start_epoch=J_epoch, 
+                                        end_epoch=S_epoch)
+        js_orbit = js_xfer.initial_orbit
+#         print("js:", js_orbit)
+        ej_orbit = xfer_into_xfer(js_orbit, 
+                                 theta_inf_deg=j_theta_inf_deg, 
+                                 target_body=Jupiter,
+                                 origin_body=Earth, 
+                                 origin_epoch_guess=E_epoch)
+        try:
+            back_ej_orbit = ej_orbit.propagate(ej_delta_t0*u.day, method=kepler, rtol=1e-5)
+        except RuntimeError:
+            back_ej_orbit = ej_orbit.propagate(ej_delta_t0*u.day, method=cowell, rtol=1e-5)
+#         print("back_ej:", back_ej_orbit)
+        ve_orbit = xfer_into_xfer(back_ej_orbit, 
+                                 theta_inf_deg=e_theta_inf_deg,
+                                 target_body=Earth, 
+                                 origin_body=Venus, 
+                                 origin_epoch_guess=V_epoch)
+#         print("propagate:", ve_delta_t*u.day)
+        kwargs = {'numiter':100000}
+        try:
+            back_ve_orbit = ve_orbit.propagate(ve_delta_t*u.day, method=kepler, rtol=1e-5)
+        except RuntimeError:
+            back_ve_orbit = ve_orbit.propagate(ve_delta_t*u.day, method=cowell, rtol=1e-5)
+            #method=cowell
+#         print("back_ve:", back_ve_orbit)
+
+        f = xfer_err(ej_orbit, Earth)
+        g = xfer_err(ve_orbit, Venus)
+        
+        V_orbit = Orbit.from_body_ephem(Venus, V_epoch)
+        
+        v_in_venus = back_ve_orbit.v - V_orbit.v
+        c3_venus = norm(v_in_venus)**2
+        
+        err_weight = .0001
+        c3_weight = 100
+        f_term = err_weight * (1-f(back_prop_xfer=back_ej_orbit)/10000)**2
+        g_term = err_weight * (1-g(back_prop_xfer=back_ve_orbit)/10000)**2
+        c3_term = c3_weight * (c3_venus.value)**2
+        
+        print("score terms: %10.0f %10.0f %9.0f" % (f_term, g_term, c3_term))
+        score = f_term + g_term + c3_term
+#         print("trying:", x, score)
+        return score
+
+    J_orbit = Orbit.from_body_ephem(Jupiter, time_j)
     
-    #tmod[3] = random.uniform(max(bounds[3][0], tmod[2] + 1000), tmod[3] + 300)
+    def opt_ej():
+        ej_bounds = [(-365*6, -365*1), (-600,-300), (90.001,180), (-180,-14), (95,180)]
+        x0 = [
+            -700,  # JS delta t 
+            -350,  # EJ delta t
+            120,   # J theta_inf
+            -90,   # VE delta t
+            120]   # E theta_inf
+        
+        V_epoch = Time("2041-01-08", scale=TIME_SCALE)
+        
+        minimizer_kwargs = {
+            'args': (V_epoch),
+            'tol': 1e-3,
+            'bounds': ej_bounds,
+    #             'method': 'COBYLA'
+        }
+        opt_out = opt.basinhopping(find_flyby,
+                                   x0=x0,
+                                   niter=100,
+                                   minimizer_kwargs=minimizer_kwargs,
+                                   disp=True).x
+                              
+        (js_delta_t, ej_delta_t, j_angle, ve_delta_t, e_angle) = opt_out 
+        
+    #         e_epoch = J_orbit.epoch + ej_delta_t*u.day
+    #         v_epoch = e_epoch + ve_delta_t*u.day
+        
+        E_epoch = V_epoch - ve_delta_t*u.day
+        J_epoch = E_epoch - ej_delta_t*u.day
+        S_epoch = J_epoch - js_delta_t*u.day
+        
+        return {'s_epoch': S_epoch, 'j_epoch': J_epoch, 'e_epoch': E_epoch,
+                'v_epoch': V_epoch, 'j_angle': j_angle, 'e_angle': e_angle,
+                'js_delta_t': js_delta_t, 'ej_delta_t': ej_delta_t,
+                've_delta_t': ve_delta_t,
+                'opt_out': opt_out}
+        return (j_angle, E_epoch, e_angle, V_epoch, opt_out)
+
     
-    js_xfer = xfer_list[2]
-    ej_xfer = xfer_list[1]
-    ve_xfer = xfer_list[0]              
+    results = opt_ej()
+    print("results:", results)
+    
+    planner = TransferPlanner()
+    
+    planner.start_body = Jupiter
+    planner.end_body = Saturn
+    start_epoch = results['j_epoch']
+    end_epoch = results['s_epoch']
+    
+    js_xfer = planner.make_transfer(start_epoch=start_epoch, 
+                                    end_epoch=end_epoch)
+    
+    js_orbit = js_xfer.initial_orbit
+    ej_orbit = xfer_into_xfer(js_orbit, 
+                                 theta_inf_deg=results['j_angle'], 
+                                 target_body=Jupiter,
+                                 origin_body=Earth, 
+                                 origin_epoch_guess=results['e_epoch'])
+    
+    back_ej_orbit = ej_orbit.propagate(results['ej_delta_t']*u.day, 
+                                       method=kepler)
+    ve_orbit = xfer_into_xfer(back_ej_orbit, 
+                                 theta_inf_deg=results['e_angle'], 
+                                 target_body=Earth,
+                                 origin_body=Venus, 
+                                 origin_epoch_guess=results['v_epoch'])
+    
+    back_ve_orbit = ve_orbit.propagate(results['ve_delta_t']*u.day, 
+                                       method=kepler)
+    
+    V_orbit = Orbit.from_body_ephem(Venus, results['v_epoch'])
+    v_in_venus = back_ve_orbit.v - V_orbit.v
+    c3_venus = norm(v_in_venus)**2
+    print("C3 at venus:", c3_venus)
+    
+#     js_xfer = xfer_list[2]
+#     ej_orbit = xfer_list[1]
+#     ve_orbit = xfer_list[0]         
+
+    planner.start_body = Earth
+    planner.end_body = Jupiter
+    ej_xfer = planner.make_transfer(start_epoch=results['e_epoch'], 
+                                    end_epoch=results['j_epoch'])
+    
+    planner.start_body = Venus
+    planner.end_body = Earth
+    ve_xfer = planner.make_transfer(start_epoch=results['v_epoch'], 
+                                    end_epoch=results['e_epoch'])
 
     xfers = {(Venus, Earth):    ve_xfer,
              (Earth, Jupiter):  ej_xfer,
              (Jupiter, Saturn): js_xfer}
     
     encounters = {Venus:   Boundary.from_transfers(None, ve_xfer),
-                  Earth:   flyby_list[0],
-                  Jupiter: flyby_list[1],
+                  Earth:   Flyby.from_transfers(ve_xfer, ej_xfer),
+                  Jupiter: Flyby.from_transfers(ej_xfer, js_xfer),
                   Saturn:  Boundary.from_transfers(js_xfer, None)}
     
     ################## Plot ##################  
     if plot_on:
         op = OrbitPlotter2D()
         
-        orbit_v = ve_xfer.initial_orbit
-        orbit_e = ej_xfer.initial_orbit
+        orbit_v = ve_orbit.initial_orbit
+        orbit_e = ej_orbit.initial_orbit
         orbit_j = js_xfer.initial_orbit
         orbit_s = js_xfer.target_orbit 
 
@@ -165,8 +327,8 @@ def trajectory_calculator(route, plot_on=False, disp_on=False):
         op.plot(orbit_j, label="Jupiter Orbit")
         op.plot(orbit_s, label="Saturn Orbit")
 
-        op.plot(ve_xfer.orbit, label="V2->E")
-        op.plot(ej_xfer.orbit, label="E->J")
+        op.plot(ve_orbit.orbit, label="V2->E")
+        op.plot(ej_orbit.orbit, label="E->J")
         op.plot(js_xfer.orbit, label="J->S")
     
     print(tuple((k,v) for k,v in encounters.items()))
@@ -188,6 +350,8 @@ def trajectory_calculator(route, plot_on=False, disp_on=False):
 #     print(ee.outbound_v, "->", ee.v_f)
 #     print(ee.v_err)
     
+    print("C3_v:      %3s"    % encounters[Venus].C3)
+    print()
     print("v_inf_e:   %3s"    % encounters[Earth].v_inf)
     print("psi_e:     %3.1f°" % encounters[Earth].psi_deg)
     print("r_p/R]_e:  %3.2f"  % encounters[Earth].r_pr)

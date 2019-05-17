@@ -165,7 +165,10 @@ class Vector:
         return np.linalg.norm(self.value)
     
     def normalize(self):
-        return Vector(np_arr=self.array/self.norm())
+        norm = self.norm()
+        if norm == 0:
+            raise RuntimeError("divide by zero")
+        return Vector(np_arr=self.array/norm)
     
     def plot(self, label, as_line=False, **plot_kwargs):        
         if as_line:
