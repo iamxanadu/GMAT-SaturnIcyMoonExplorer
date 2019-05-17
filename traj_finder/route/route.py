@@ -88,6 +88,7 @@ class RouteBuilder(object):
         self.base_epoch = base_epoch
         self._epochs_from_x_func = RouteBuilder._gen_epochs_from_x_func(
             base_epoch_body, base_epoch)
+        self._last_route = None
     
     @staticmethod
     def _gen_epochs_from_x_func(base_epoch_body, base_epoch):
@@ -145,47 +146,105 @@ class RouteBuilder(object):
         v_in_venus = route.departure_orbit(Venus).v - V_orbit.v
         c3_venus = norm(v_in_venus)**2
         
-        err_weight = .0001
-        c3_weight = 100
-        f_term = err_weight * (1-route.xfer_error(Earth)/10000)**2
-        g_term = err_weight * (1-route.xfer_error(Venus)/10000)**2
-        c3_term = c3_weight * (c3_venus.value)**2
+#         err_weight = .0001
+#         c3_weight = 100
+#         f_term = err_weight * (1-route.xfer_error(Earth)/10000)**2
+#         g_term = err_weight * (1-route.xfer_error(Venus)/10000)**2
+#         c3_term = c3_weight * (c3_venus.value)**2
+        c3_term = c3_venus.value
         
 #         print("score terms: %10.0f %10.0f %9.0f" % (f_term, g_term, c3_term))
-        score = f_term + g_term + c3_term
+#         score = f_term + g_term + c3_term
+        score = c3_term
+        print("score: %9.4f" % c3_term)
 #         print("trying:", x, score)
+        self._last_route = route
         return score
     
+    def window_inner_contraint(self, start_body):
+        def _inner(_x):
+            if self._last_route is None:
+                self.find_flyby(_x)
+            
+            # must be greater than 0
+            return self._last_route.xfer_error(start_body)*u.m - start_body.R  
+        
+        return _inner
+    
+    def window_outer_contraint(self, start_body):
+        def _inner(_x):
+            # must be greater than 0
+            return 100*start_body.R - self._last_route.xfer_error(start_body)*u.m
+        
+        return _inner
+    
     def opt_ej(self):
-        ej_bounds = [(-365*6, -365*2), (-600,-300), (90.001,180), (-180,-14), (95,180)]
+        bounds = [(-365*6, -365*2), (-600,-300), (90.001,180), (-180,-14), (95,180)]
         x0 = [
             -700,  # JS delta t 
             -350,  # EJ delta t
             120,   # J theta_inf
             -90,   # VE delta t
-            120]   # E theta_inf
+            130]   # E theta_inf
         
-        V_epoch = Time("2041-01-08", scale=TIME_SCALE)
+        cons = ({'type': 'ineq', 'fun': self.window_inner_contraint(Earth)},
+                {'type': 'ineq', 'fun': self.window_outer_contraint(Earth)},
+                {'type': 'ineq', 'fun': self.window_inner_contraint(Jupiter)},
+                {'type': 'ineq', 'fun': self.window_outer_contraint(Jupiter)})
+        
+        # Sorry about the bat-shit insane lambdas
+        # X[i] - MIN[i] > 0
+        lower_bound = lambda i: {'type': 'ineq', 
+                                 'fun': lambda x:  x[i] - bounds[i][0]}
+        # MAX[i] - X[i] > 0
+        upper_bound = lambda i: {'type': 'ineq', 
+                                 'fun': lambda x:  bounds[i][1] - x[i]}
+        
+#         cons += tuple(map(lower_bound, range(len(bounds))))
+#         cons += tuple(map(upper_bound, range(len(bounds))))
+        
+#         method = 'L-BFGS-B'  # default
+#         method = 'SLSQP'
+#         method = 'TNC'
+#         method = 'COBYLA'
+
+        options = {
+            'ftol': 1e0,
+            'disp': True,
+        }
         
         minimizer_kwargs = {
-            'tol': 1e-3,
-            'bounds': ej_bounds,
-    #             'method': 'COBYLA'
+            'tol': 1e0,
+#             'ftol': 1e-1,
+            'bounds': bounds,
+            'constraints': cons,
+            'options': options,
         }
-        opt_out = opt.basinhopping(self.find_flyby,
-                                   x0=x0,
-                                   niter=5,
-                                   minimizer_kwargs=minimizer_kwargs,
-                                   disp=True).x
+        
+#         minimizer_kwargs['method'] = method
+        
+        opt_out = opt.minimize(self.find_flyby,
+                               x0=x0,
+                               **minimizer_kwargs,
+                               ).x
+        
+#         opt_out = opt.basinhopping(self.find_flyby,
+#                                    x0=x0,
+#                                    niter=100,
+#                                    minimizer_kwargs=minimizer_kwargs,
+#                                    disp=True).x
                               
         (js_delta_t, ej_delta_t, j_angle, ve_delta_t, e_angle) = opt_out 
         
     #         e_epoch = J_orbit.epoch + ej_delta_t*u.day
     #         v_epoch = e_epoch + ve_delta_t*u.day
-        
-        E_epoch = V_epoch - ve_delta_t*u.day
-        J_epoch = E_epoch - ej_delta_t*u.day
-        S_epoch = J_epoch - js_delta_t*u.day
+        V_epoch = self._last_route._epochs[Venus]
+        E_epoch = self._last_route._epochs[Earth]
+        J_epoch = self._last_route._epochs[Jupiter]
+        S_epoch = self._last_route._epochs[Saturn]
+#         E_epoch = V_epoch - ve_delta_t*u.day
+#         J_epoch = E_epoch - ej_delta_t*u.day
+#         S_epoch = J_epoch - js_delta_t*u.day
         
         return {'s_epoch': S_epoch, 'j_epoch': J_epoch, 'e_epoch': E_epoch,
                 'v_epoch': V_epoch, 'j_angle': j_angle, 'e_angle': e_angle,
