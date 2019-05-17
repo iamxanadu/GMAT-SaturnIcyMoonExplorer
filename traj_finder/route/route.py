@@ -189,24 +189,9 @@ class RouteBuilder(object):
                 'opt_out': opt_out}
         return (j_angle, E_epoch, e_angle, V_epoch, opt_out)
         
-    def trajectory_calculator(self, route, plot_on=False, disp_on=False):
-        ref_epoch = Time("2020-01-01", scale=TIME_SCALE)
+    def trajectory_calculator(self, route, plot_on=False, disp_on=False):  # @UnusedVariable
+#         options = {'maxiter': 1,'disp': disp_on}
         
-        tmod = [(epoch - ref_epoch).to(u.day).value for epoch in route.values()]
-    
-        time_v = route[Venus]
-        time_e = route[Earth]
-        time_j = route[Jupiter]
-        time_s = route[Saturn]
-    
-        nodes = list(route.keys())
-        
-        lower_bound = 0
-        upper_bound = 40*365
-        
-        options = {'maxiter': 1,'disp': True}
-        
-        xfer_list = []
         flyby_list = []
         
         index_pairs = zip(range(0,len(route)-1), range(1,len(route)))
@@ -220,9 +205,6 @@ class RouteBuilder(object):
                                 'fun':flyby_constraint(1, 4, flyby_list)})
         
         print("first pass")
-    
-        J_orbit = Orbit.from_body_ephem(Jupiter, time_j)
-        
         results = self.opt_ej()
         print("results:", results)
         
