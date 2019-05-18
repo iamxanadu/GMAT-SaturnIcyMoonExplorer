@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -u
 # coding: utf-8
 
 # In[1]:
@@ -128,10 +128,10 @@ if __name__ == "__main__":
              Jupiter: Time("2030-08-03 01:11:35.078", scale=TIME_SCALE),
              Saturn:  Time("2035-09-05 20:40:09.445", scale=TIME_SCALE)}
     
-#     trial = {Venus:   Time("2039-11-25 12:46:13.205", scale=TIME_SCALE),
-#              Earth:   Time("2040-02-10 15:20:30.134", scale=TIME_SCALE),
-#              Jupiter: Time("2042-07-31 01:11:35.078", scale=TIME_SCALE),
-#              Saturn:  Time("2047-09-04 20:40:09.445", scale=TIME_SCALE)}
+    trial = {Venus:   Time("2037-11-25 12:46:13.205", scale=TIME_SCALE),
+             Earth:   Time("2038-02-10 15:20:30.134", scale=TIME_SCALE),
+             Jupiter: Time("2040-12-08 01:11:35.078", scale=TIME_SCALE),
+             Saturn:  Time("2046-01-04 20:40:09.445", scale=TIME_SCALE)}
     
     terminate_epoch = Time("2045-05-05", scale=TIME_SCALE)
     

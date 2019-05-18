@@ -355,7 +355,7 @@ class RouteBuilder(object):
             'ftol': 1e0,
 #             'catol': 10000,
             'disp': disp_on,
-            'maxiter': 10,
+            'maxiter': 30,
         }
         
         minimizer_kwargs = {
