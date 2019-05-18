@@ -66,6 +66,14 @@ class Escape(Boundary):
                          outbound_orbit=helio_orbit)
         
     @property
+    def C3(self):
+        return self.v_inf**2
+    
+    @property
+    def v_inf(self):
+        return norm(self.parent_orbit.v - self.relative_v).to(u.km/u.s)
+    
+    @property
     def delta_v(self):
         return norm(self.parent_orbit.v - self.relative_v)
 
