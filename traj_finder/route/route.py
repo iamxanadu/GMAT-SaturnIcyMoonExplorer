@@ -22,6 +22,8 @@ import math
 from poliastro.twobody.orbit import Orbit
 from astropy.units.quantity import Quantity
 from poliastro.twobody.propagation import cowell, kepler
+from enum import Enum
+from poliastro.plotting.core import OrbitPlotter3D
 
 TIME_SCALE="tdb"
 
@@ -83,6 +85,11 @@ def xfer_into_xfer(js_orbit, theta_inf_deg, target_body, origin_body, origin_epo
 
 class RouteBuilder(object):
     
+    Arg = Enum('Arg', 'JS_DELTA_T EJ_DELTA_T J_THETA_INF' 
+               + ' VE_DELTA_T E_THETA_INF')
+    
+    bodies = (Venus, Earth, Jupiter, Saturn)
+    
     def __init__(self, base_epoch_body, base_epoch):
         self.base_epoch_body = base_epoch_body
         self.base_epoch = base_epoch
@@ -130,10 +137,9 @@ class RouteBuilder(object):
     
     def epoch_from_x(self, x):
         return self._epochs_from_x_func(x)
-        
-    def find_flyby(self, x):
-        
-#         print("trying:", x)
+    
+    def make_route(self, x):
+        #         print("trying:", x)
         j_theta_inf_deg = x[2]
         e_theta_inf_deg = x[4]
         epoch_dict = self.epoch_from_x(x)
@@ -141,6 +147,11 @@ class RouteBuilder(object):
         theta_inf_dict = {Earth: e_theta_inf_deg, Jupiter: j_theta_inf_deg}
         
         route = Route(epoch_dict, theta_inf_dict)
+        return route
+        
+    def find_flyby(self, x):
+        route = self.make_route(x)
+        
         V_orbit = route.body_orbit(Venus)
         
         v_in_venus = route.departure_orbit(Venus).v - V_orbit.v
@@ -156,122 +167,136 @@ class RouteBuilder(object):
 #         print("score terms: %10.0f %10.0f %9.0f" % (f_term, g_term, c3_term))
 #         score = f_term + g_term + c3_term
         score = c3_term
-        print("score: %9.4f" % c3_term)
+#         print("score: %9.4f" % c3_term)
 #         print("trying:", x, score)
+        
         self._last_route = route
         return score
     
     def window_inner_contraint(self, start_body):
-        def _inner(_x):
+        radius = start_body.R
+        def _inner(x):
             if self._last_route is None:
-                self.find_flyby(_x)
+                self.find_flyby(x)
             
             # must be greater than 0
-            return self._last_route.xfer_error(start_body)*u.m - start_body.R  
+#             route = self.make_route(x)
+#             return route.xfer_error(start_body)*u.km - start_body.R
+            err = self._last_route.xfer_error(start_body)
+            return err/radius - 1
         
         return _inner
     
     def window_outer_contraint(self, start_body):
-        def _inner(_x):
+        radius = start_body.R
+        def _inner(x):
             # must be greater than 0
-            return 100*start_body.R - self._last_route.xfer_error(start_body)*u.m
+#             route = self.make_route(x)
+#             return 100*start_body.R - route.xfer_error(start_body)*u.km
+            err = self._last_route.xfer_error(start_body)
+            
+            return 1000 - err/radius
         
         return _inner
     
-    def opt_ej(self):
-        bounds = [(-365*6, -365*2), (-600,-300), (90.001,180), (-180,-14), (95,180)]
-        x0 = [
-            -700,  # JS delta t 
-            -350,  # EJ delta t
-            120,   # J theta_inf
-            -90,   # VE delta t
-            130]   # E theta_inf
+    def optimize(self, x0, bounds, minimizer_kwargs, basinhop=False):
         
-        cons = ({'type': 'ineq', 'fun': self.window_inner_contraint(Earth)},
-                {'type': 'ineq', 'fun': self.window_outer_contraint(Earth)},
-                {'type': 'ineq', 'fun': self.window_inner_contraint(Jupiter)},
-                {'type': 'ineq', 'fun': self.window_outer_contraint(Jupiter)})
+        cons = ({'type': 'ineq', 'fun': self.window_inner_contraint(Venus)},
+                {'type': 'ineq', 'fun': self.window_outer_contraint(Venus)},
+                {'type': 'ineq', 'fun': self.window_inner_contraint(Earth)},
+                {'type': 'ineq', 'fun': self.window_outer_contraint(Earth)})
         
-        # Sorry about the bat-shit insane lambdas
-        # X[i] - MIN[i] > 0
-        lower_bound = lambda i: {'type': 'ineq', 
-                                 'fun': lambda x:  x[i] - bounds[i][0]}
-        # MAX[i] - X[i] > 0
-        upper_bound = lambda i: {'type': 'ineq', 
-                                 'fun': lambda x:  bounds[i][1] - x[i]}
+        # Convert bounds into constraints if the COBYLA method is used, since
+        # it can't use bounds
+        if minimizer_kwargs.get('method') == 'COBYLA':
+            
+            # Sorry about the bat-shit insane lambdas
+            # X[i] - MIN[i] > 0
+            lower_bound = lambda i: {'type': 'ineq', 
+                                     'fun': lambda x:  x[i] - bounds[i][0]}
+            # MAX[i] - X[i] > 0
+            upper_bound = lambda i: {'type': 'ineq', 
+                                     'fun': lambda x:  bounds[i][1] - x[i]}
+            
+            cons += tuple(map(lower_bound, range(len(bounds))))
+            cons += tuple(map(upper_bound, range(len(bounds))))
         
-#         cons += tuple(map(lower_bound, range(len(bounds))))
-#         cons += tuple(map(upper_bound, range(len(bounds))))
+        else:
+            minimizer_kwargs['bounds'] = bounds
+            
+        minimizer_kwargs['constraints'] = cons
         
-#         method = 'L-BFGS-B'  # default
-#         method = 'SLSQP'
-#         method = 'TNC'
-#         method = 'COBYLA'
-
-        options = {
-            'ftol': 1e0,
-            'disp': True,
-        }
-        
-        minimizer_kwargs = {
-            'tol': 1e0,
-#             'ftol': 1e-1,
-            'bounds': bounds,
-            'constraints': cons,
-            'options': options,
-        }
-        
-#         minimizer_kwargs['method'] = method
-        
-        opt_out = opt.minimize(self.find_flyby,
-                               x0=x0,
-                               **minimizer_kwargs,
-                               ).x
-        
-#         opt_out = opt.basinhopping(self.find_flyby,
-#                                    x0=x0,
-#                                    niter=100,
-#                                    minimizer_kwargs=minimizer_kwargs,
-#                                    disp=True).x
+        if basinhop:
+            opt_out = opt.basinhopping(self.find_flyby,
+                                       x0=x0,
+                                       niter=30,
+                                       minimizer_kwargs=minimizer_kwargs,
+                                       disp=True)
+        else:                                   
+            opt_out = opt.minimize(self.find_flyby,
+                                   x0=x0,
+                                   **minimizer_kwargs,
+                                   )
                               
-        (js_delta_t, ej_delta_t, j_angle, ve_delta_t, e_angle) = opt_out 
+        (js_delta_t, ej_delta_t, j_angle, ve_delta_t, e_angle) = opt_out.x
         
-    #         e_epoch = J_orbit.epoch + ej_delta_t*u.day
-    #         v_epoch = e_epoch + ve_delta_t*u.day
-        V_epoch = self._last_route._epochs[Venus]
-        E_epoch = self._last_route._epochs[Earth]
-        J_epoch = self._last_route._epochs[Jupiter]
-        S_epoch = self._last_route._epochs[Saturn]
-#         E_epoch = V_epoch - ve_delta_t*u.day
-#         J_epoch = E_epoch - ej_delta_t*u.day
-#         S_epoch = J_epoch - js_delta_t*u.day
+        epochs = self._last_route._epochs
+        V_epoch = epochs[Venus]
+        E_epoch = epochs[Earth]
+        J_epoch = epochs[Jupiter]
+        S_epoch = epochs[Saturn]
         
         return {'s_epoch': S_epoch, 'j_epoch': J_epoch, 'e_epoch': E_epoch,
                 'v_epoch': V_epoch, 'j_angle': j_angle, 'e_angle': e_angle,
                 'js_delta_t': js_delta_t, 'ej_delta_t': ej_delta_t,
                 've_delta_t': ve_delta_t,
-                'opt_out': opt_out}
+                'opt_out': opt_out,
+                'v_inner_cons': self.window_inner_contraint(Venus)(opt_out.x).value,
+                'v_outer_cons': self.window_outer_contraint(Venus)(opt_out.x).value,
+                'e_inner_cons': self.window_inner_contraint(Earth)(opt_out.x).value,
+                'e_outer_cons': self.window_outer_contraint(Earth)(opt_out.x).value}
         return (j_angle, E_epoch, e_angle, V_epoch, opt_out)
+    
+    @classmethod
+    def route_to_x0(cls, route):
+        """
+        Convert from a dictionary of Body-epoch pairs to the state vector format
+        used by `trajectory_calculator`.
         
-    def trajectory_calculator(self, route, plot_on=False, disp_on=False):  # @UnusedVariable
-#         options = {'maxiter': 1,'disp': disp_on}
+        Parameters
+        ----------
+        route : dict(:Body: -> :Time:)
+            dictionary mapping bodies in the route to the corresponding flyby
+            epoch.
+            
+        Returns
+        -------
+        list(float)
+            TODO
+            [JS_DELTA_T, EJ_DELTA_T, J_THETA_INF, VE_DELTA_T, E_THETA_INF]
         
-        flyby_list = []
+        """
+        temp_dict = {
+            cls.Arg.JS_DELTA_T:  route[Jupiter] - route[Saturn],
+            cls.Arg.EJ_DELTA_T:  route[Earth] - route[Jupiter],
+            cls.Arg.J_THETA_INF: route.get(cls.Arg.J_THETA_INF, 120),
+            cls.Arg.VE_DELTA_T:  route[Venus] - route[Earth],
+            cls.Arg.E_THETA_INF: route.get(cls.Arg.E_THETA_INF, 120)}
         
-        index_pairs = zip(range(0,len(route)-1), range(1,len(route)))
-        constraint_list = [
-            {'type': 'ineq', 'fun':causality_constraint(low_i, high_i)}
-            for low_i, high_i in index_pairs]
+        # Convert to days and drop the units
+        for k in (cls.Arg.JS_DELTA_T, cls.Arg.EJ_DELTA_T, cls.Arg.VE_DELTA_T):
+            temp_dict[k] = temp_dict[k].to(u.day).value
         
-        constraint_list.append({'type': 'ineq', 
-                                'fun':flyby_constraint(0, 1.1, flyby_list)})
-        constraint_list.append({'type': 'ineq', 
-                                'fun':flyby_constraint(1, 4, flyby_list)})
-        
-        print("first pass")
-        results = self.opt_ej()
-        print("results:", results)
-        
+        # Ensure the order is consistent, since dict doesn't guarantee it
+        return [temp_dict[k] for k in cls.Arg]
+    
+    @classmethod
+    def solution_to_route(cls, results):
+        """
+        Convert the output given by `trajectory_calculator` into a new `Route`
+        object.
+         
+        """
         epoch_dict = {Venus: results['v_epoch'],
                       Earth: results['e_epoch'],
                       Jupiter: results['j_epoch'],
@@ -280,76 +305,75 @@ class RouteBuilder(object):
         theta_inf_deg_dict = {Earth: results['e_angle'],
                               Jupiter: results['j_angle']}
         
-        route = Route(epoch_dict, theta_inf_deg_dict)
+        return Route(epoch_dict, theta_inf_deg_dict)
         
-        V_orbit = route.body_orbit(Venus)
-        v_in_venus = route.departure_orbit(Venus).v - V_orbit.v
-        c3_venus = norm(v_in_venus)**2
-        print("C3 at venus:", c3_venus)
+    def trajectory_calculator(self, x0, disp_on=False):
+        """
+        Attempt to find a trajectory near the given initial epochs in `x0`. No
+        guarantee is made that the final solution will be near these epochs,
+        except for the epoch corresponding to base_epoch_body in `__init__`.
         
-    #     js_xfer = xfer_list[2]
-    #     ej_orbit = xfer_list[1]
-    #     ve_orbit = xfer_list[0]         
+        Parameters
+        ----------
+        x0 : list(float) 
+            Initial solution guess. List elements must be in the order: 
+            [JS_DELTA_T, EJ_DELTA_T, J_THETA_INF, VE_DELTA_T, E_THETA_INF]. The 
+            variable `Route.bodies` can help cross-check the for the correct 
+            ordering. JS, EJ, and VE refer to Jupiter-Saturn, Earth-Jupiter, and
+            Venus-Earth, respectively, and each of these three elements is in
+            units of days. The two THETA_INF variables are measured in 
+            **degrees**.
+        disp_on : bool, optional)
+            True to display status updates of optimization convergence.
     
-        js_xfer = route.js_xfer
-        ej_xfer = route.ej_xfer
-        ve_xfer = route.ve_xfer
-    
-        xfers = route.xfer_dict
-        encounters = route.encounter_dict
+        Returns
+        -------
+        bool
+            TODO
         
-        ################## Plot ##################  
-        if plot_on:
-            op = OrbitPlotter2D()
-            
-            orbit_v = ve_xfer.initial_orbit
-            orbit_e = ej_xfer.initial_orbit
-            orbit_j = js_xfer.initial_orbit
-            orbit_s = js_xfer.target_orbit 
-    
-            op.plot(orbit_v, label="Venus2 Orbit")
-            op.plot(orbit_e, label="Earth2 Orbit")
-            op.plot(orbit_j, label="Jupiter Orbit")
-            op.plot(orbit_s, label="Saturn Orbit")
-    
-            op.plot(ve_xfer.orbit, label="V2->E")
-            op.plot(ej_xfer.orbit, label="E->J")
-            op.plot(js_xfer.orbit, label="J->S")
+        """
+        print("first pass")
         
-        print(tuple((k,v) for k,v in encounters.items()))
-        orbits = tuple(v.parent_orbit for v in encounters.values())
-        xfer_orbits = tuple(v.initial_orbit for v in xfers.values())
-        delta_vs = tuple(v.delta_v for k,v in encounters.items() 
-                   if k in {Earth, Jupiter, Saturn})
-        times = tuple(v.epoch for v in encounters.values())
+        bounds_dict = {
+            self.Arg.JS_DELTA_T:  (-365*6, -365*2),
+            self.Arg.EJ_DELTA_T:  (-600, -300),
+            self.Arg.J_THETA_INF: (90.001, 180),
+            self.Arg.VE_DELTA_T:  (-180, -14),
+            self.Arg.E_THETA_INF: (95, 180)}
+
+
+        bounds = [bounds_dict[k] for k in self.Arg]
+#         x0 = [
+#             -700,  # JS delta t 
+#             -350,  # EJ delta t
+#             120,   # J theta_inf
+#             -90,   # VE delta t
+#             130]   # E theta_inf
         
-        #print("orbits: ", orbits)
-        #print("delta_vs: ", delta_vs)
-        #print("xfers.values(): ", xfers.values())
-        #print("xfer orbits[0]: ", xfer_orbits[0].r_p.to(u.AU), ", ", xfer_orbits[0].r_a.to(u.AU))
-        #print(xfer_orbits[0].epoch)
+        options = {
+#             'tol': 1,
+            'ftol': 1e0,
+#             'catol': 10000,
+            'disp': disp_on,
+            'maxiter': 10,
+        }
         
-    #     ee = encounters[Earth]
-    #     print(ee.parent_orbit.v.to(KPS))
-    #     print(ee.inbound_v, "->", ee.v_i)
-    #     print(ee.outbound_v, "->", ee.v_f)
-    #     print(ee.v_err)
+        minimizer_kwargs = {
+            'tol': 1e0,
+#             'method': 'COBYLA',
+            'options': options,
+        }
+        results = self.optimize(x0, bounds, minimizer_kwargs, basinhop=False)
         
-        print("C3_v:      %3s"    % encounters[Venus].C3)
-        print()
-        print("v_inf_e:   %3s"    % encounters[Earth].v_inf)
-        print("psi_e:     %3.1f°" % encounters[Earth].psi_deg)
-        print("r_p/R]_e:  %3.2f"  % encounters[Earth].r_pr)
-        print("delta_v_e: %3s"  % encounters[Earth].delta_v)
-        print()
-        print("v_inf_j:   %3s"    % encounters[Jupiter].v_inf)
-        print("psi_j:     %3.1f°" % encounters[Jupiter].psi_deg)
-        print("r_p/R]_j:  %3.2f"  % encounters[Jupiter].r_pr)
-        print("delta_v_j: %3s"    % encounters[Jupiter].delta_v)
-        
-        return (sum(delta_vs), orbits, xfer_orbits, delta_vs, times)
+#         if results['opt_out'].success:
+        return results
+#         else:
+#             print("results['opt_out']: ", results['opt_out'])
+#             quit(0)
     
 class Route(object):
+    bodies = RouteBuilder.bodies
+    
     def __init__(self, epoch_dict, theta_inf_dict):
         V_epoch = epoch_dict[Venus] 
         E_epoch = epoch_dict[Earth] 
@@ -451,6 +475,29 @@ class Route(object):
         return {(Venus, Earth):    self.ve_xfer,
                 (Earth, Jupiter):  self.ej_xfer,
                 (Jupiter, Saturn): self.js_xfer}
+    
+    @property
+    def orbits(self):
+        """
+        Tuple of each body's orbit at the corresponding flyby epoch 
+        """
+        return tuple(self.body_orbit(k) for k in self.bodies)
+    
+    @property
+    def epochs(self):
+        """
+        A tuple of epochs of the flybys at each body
+        """
+        return tuple(self.body_epoch(k) for k in self.bodies)
+    
+    @property
+    def xfer_orbits(self):
+        """ 
+        Tuple of all transfer orbits from each body to the next.
+        
+        Provided for compatability with older top-level code
+        """
+        return tuple(v.initial_orbit for v in self.xfer_dict.values())
         
     @property
     def encounter_dict(self):
@@ -458,6 +505,22 @@ class Route(object):
                 Earth:   Flyby.from_transfers(self.ve_xfer, self.ej_xfer),
                 Jupiter: Flyby.from_transfers(self.ej_xfer, self.js_xfer),
                 Saturn:  Boundary.from_transfers(self.js_xfer, None)}
+        
+    @property
+    def delta_vs(self):
+        return tuple(v.delta_v for k,v in self.encounter_dict.items() 
+                     if k in {Earth, Jupiter, Saturn})
+    
+    def legacy_format(self):
+        """
+        Condense the info for this route down to the list format used by Dev's
+        original code.
+        """
+        return (sum(self.delta_vs), 
+                self.orbits, 
+                self.xfer_orbits, 
+                self.delta_vs, 
+                self.times)
         
     def body_orbit(self, body):
         try:
@@ -483,4 +546,66 @@ class Route(object):
 #         print("r_f:", norm(base_orbit.r).to(u.au))
 #         print("r_0:", norm(back_prop_xfer.r).to(u.au))
         r_err = back_prop_xfer.r - body_orbit.r
-        return norm(r_err) / u.km
+        return norm(r_err)
+    
+    def printout(self, extra=False):
+        V_orbit = self.body_orbit(Venus)
+        v_in_venus = self.departure_orbit(Venus).v - V_orbit.v
+        c3_venus = norm(v_in_venus)**2
+        print("C3 at venus:", c3_venus)
+    
+        xfers = self.xfer_dict
+        encounters = self.encounter_dict
+        
+        print(tuple((k,v) for k,v in encounters.items()))
+
+        if extra:
+            orbits = tuple(v.parent_orbit for v in encounters.values())
+            xfer_orbits = tuple(v.initial_orbit for v in xfers.values())
+            delta_vs = tuple(v.delta_v for k,v in encounters.items() 
+                       if k in {Earth, Jupiter, Saturn})
+        
+            print("orbits: ", orbits)
+            print("delta_vs: ", delta_vs)
+            print("xfers.values(): ", xfers.values())
+            print("xfer orbits[0]: ", xfer_orbits[0].r_p.to(u.AU), ", ", 
+                  xfer_orbits[0].r_a.to(u.AU))
+            print(xfer_orbits[0].epoch)
+            
+            ee = encounters[Earth]
+            print(ee.parent_orbit.v.to(u.km/u.s))
+            print(ee.inbound_v, "->", ee.v_i)
+            print(ee.outbound_v, "->", ee.v_f)
+            print(ee.v_err)
+    
+        print("C3_v:      %3s"    % encounters[Venus].C3)
+        print()
+        print("v_inf_e:   %3s"    % encounters[Earth].v_inf)
+        print("psi_e:     %3.1f°" % encounters[Earth].psi_deg)
+        print("r_p/R]_e:  %3.2f"  % encounters[Earth].r_pr)
+        print("delta_v_e: %3s"  % encounters[Earth].delta_v)
+        print()
+        print("v_inf_j:   %3s"    % encounters[Jupiter].v_inf)
+        print("psi_j:     %3.1f°" % encounters[Jupiter].psi_deg)
+        print("r_p/R]_j:  %3.2f"  % encounters[Jupiter].r_pr)
+        print("delta_v_j: %3s"    % encounters[Jupiter].delta_v)
+
+    def plot(self, use_3d=False):
+        if use_3d:
+            op = OrbitPlotter3D()
+        else:
+            op = OrbitPlotter2D()
+            
+        orbit_v = self.ve_xfer.initial_orbit
+        orbit_e = self.ej_xfer.initial_orbit
+        orbit_j = self.js_xfer.initial_orbit
+        orbit_s = self.js_xfer.target_orbit 
+
+        op.plot(orbit_v, label="Venus2 Orbit")
+        op.plot(orbit_e, label="Earth2 Orbit")
+        op.plot(orbit_j, label="Jupiter Orbit")
+        op.plot(orbit_s, label="Saturn Orbit")
+
+        op.plot(self.ve_xfer.orbit, label="V2->E")
+        op.plot(self.ej_xfer.orbit, label="E->J")
+        op.plot(self.js_xfer.orbit, label="J->S")

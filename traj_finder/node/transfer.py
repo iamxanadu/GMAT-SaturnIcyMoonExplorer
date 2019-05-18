@@ -132,11 +132,18 @@ class TransferPlanner:
         target_orbit = self.target_orbit(end_epoch)
     
         #compute transfer lambert trajectory
+#         try:
         (start_v, end_v), = vallado.lambert(self.central_body.k, 
                                              depart_orbit.r, 
                                              target_orbit.r, 
                                              duration,
-                                             numiter=1000)
+                                             numiter=100)
+#         except RuntimeError:
+#             (start_v, end_v), = izzo.lambert(self.central_body.k, 
+#                                                   depart_orbit.r, 
+#                                                   target_orbit.r, 
+#                                                   duration,
+#                                                   numiter=1000)
         
         xfer = Transfer(self.start_body, self.end_body)
         xfer.initial_orbit = Orbit.from_vectors(self.central_body, 

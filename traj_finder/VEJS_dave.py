@@ -2,7 +2,8 @@
 # coding: utf-8
 
 # In[1]:
-
+import csv
+import datetime
 import numpy as np
 
 import astropy.units as u
@@ -127,12 +128,62 @@ if __name__ == "__main__":
              Jupiter: Time("2030-08-03 01:11:35.078", scale=TIME_SCALE),
              Saturn:  Time("2035-09-05 20:40:09.445", scale=TIME_SCALE)}
     
-    base_epoch_body = Venus
-    base_epoch = Time("2041-01-08", scale=TIME_SCALE)
+#     trial = {Venus:   Time("2039-11-25 12:46:13.205", scale=TIME_SCALE),
+#              Earth:   Time("2040-02-10 15:20:30.134", scale=TIME_SCALE),
+#              Jupiter: Time("2042-07-31 01:11:35.078", scale=TIME_SCALE),
+#              Saturn:  Time("2047-09-04 20:40:09.445", scale=TIME_SCALE)}
+    
+    terminate_epoch = Time("2045-05-05", scale=TIME_SCALE)
+    
+#     base_epoch_body = Venus
+#     base_epoch = Time("2041-01-08", scale=TIME_SCALE)
+    base_epoch_body = Jupiter
+    base_epoch = trial[base_epoch_body]
     route_builder = RouteBuilder(base_epoch_body, base_epoch)
     
-    sol = route_builder.trajectory_calculator(cassini_route)
+    filename = datetime.datetime.now().strftime("optimal-route-%y-%m-%d-%H-%M.csv")
+    fieldnames = ('v_epoch', 'e_epoch', 'j_epoch', 's_epoch', 
+                       'e_angle', 'j_angle', 'v_inner_cons', 'v_outer_cons',
+                       'e_inner_cons', 'e_outer_cons', 've_delta_t',
+                       'ej_delta_t', 'js_delta_t')
 
+    with open(filename, mode='w') as result_file:
+        writer = csv.DictWriter(result_file, fieldnames=fieldnames)
+        writer.writeheader()
+        
+        print("Jupiter at ", base_epoch)
+        x0 = RouteBuilder.route_to_x0(trial)
+        solution = route_builder.trajectory_calculator(x0)
+        print("results:", solution)
+            
+        while trial[base_epoch_body] < terminate_epoch:
+#         while not solution['opt_out'].success:
+            for key in trial:
+                trial[key] += 15 * u.day
+                
+            if trial[base_epoch_body] > terminate_epoch:
+                break
+            try:
+                route_builder = RouteBuilder(base_epoch_body, trial[base_epoch_body])
+                print("Jupiter at ", trial[base_epoch_body])
+                x0 = RouteBuilder.route_to_x0(trial)
+                solution = route_builder.trajectory_calculator(x0)
+                print("results:", solution)
+                
+                row = {k:v for k,v in solution.items() if k in fieldnames}
+                writer.writerow(row)
+                result_file.flush()
+                
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                print("exception caught: ", e)
+                continue
+        
+    route = RouteBuilder.solution_to_route(solution)
+    
+    sol = route.legacy_format()
+    
     print()
     print("Total deltav: ", sol[0])
     print("Delta vs: ",[x.value for x in sol[3]])
